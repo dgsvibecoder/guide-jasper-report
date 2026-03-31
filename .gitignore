@@ -1,0 +1,42 @@
+# Node modules
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+
+# Compiled JasperReports
+*.jasper
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temp files
+*.tmp
+*.temp
+
+# PDFs de output (opcional, descomenta para não versioná-los)
+# output/**/*.pdf
+
+# Sistema operacional
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Arquivos de backup
+*.bak
+*.backup
+*.orig

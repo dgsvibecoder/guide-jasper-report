@@ -1,0 +1,15 @@
+{
+  "generatedAt": "2026-03-31T10:51:04.166Z",
+  "sourceJrxml": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/output/indicadores-triagem-urgenza/indicadores-triagem-urgenza.jrxml",
+  "outputJrxml": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/output/phase3-censo-style/indicadores-triagem-urgenza.styled.phase3.jrxml",
+  "blueprintPath": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/output/phase3-censo-style/style-blueprint.phase3.json",
+  "confidence": 0.98,
+  "threshold": 0.65,
+  "fallbackApplied": false,
+  "pagesAnalyzed": 12,
+  "groupsDetected": 12,
+  "imageRegionsDetected": 0,
+  "ocrUsed": false,
+  "ocrAvailable": false,
+  "ocrWordsExtracted": null
+}

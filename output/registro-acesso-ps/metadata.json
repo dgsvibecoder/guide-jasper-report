@@ -1,0 +1,22 @@
+{
+  "reportName": "RegistroAcessoPS",
+  "generatedAt": "2026-03-30T18:26:13.619Z",
+  "source": "registro-acesso-ps.jrxml",
+  "outputs": {
+    "jrxml": "registro-acesso-ps.jrxml",
+    "jasper": "registro-acesso-ps.jasper",
+    "pdf": "registro-acesso-ps.pdf",
+    "log": "registro-acesso-ps.log"
+  },
+  "checksums": {
+    "jrxml": "8e8efc302edb0044cbaa2a33c8007320efed9691b7cccdc5b0cc5613a79dd20a",
+    "jasper": "807ef98ec819071018a44266772449fba636218c9d09d07ed9a1c1630929b28d",
+    "pdf": "69e84dbff64645c5e1013b2572657c8bff11b10d986424f639c5de3c72e77ecd"
+  },
+  "validation": {
+    "paramsCount": 3,
+    "foundBands": 4,
+    "warnings": []
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

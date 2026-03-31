@@ -1,0 +1,48 @@
+# Placeholder: Saída de Relatórios Versionada
+
+Esta pasta contém todos os relatórios gerados com versionamento.
+
+## 📁 Estrutura
+
+```
+output/
+├── RELATORIO_20260330_143022/
+│   ├── relatorio.jrxml      ← XML origem
+│   ├── relatorio.jasper     ← Compilado
+│   ├── relatorio.pdf        ← Preview
+│   ├── relatorio.log        ← Validação + compile logs
+│   └── metadata.json        ← Versioning + checksums
+│
+├── OUTRO_RELATORIO_20260330_150000/
+│   ├── ...
+│   └── ...
+```
+
+## 🕐 Naming Convention
+
+`{RELATORIO_NAME}_{YYYYMMDD}_{HHMMSS}/`
+
+Exemplo:
+- `VENDAS_DIARIAS_20260330_143022/`
+- `PACIENTES_ATENDIDOS_20260330_150000/`
+
+## 📊 Versionamento
+
+Cada pasta preserva:
+1. Data/hora exata de geração
+2. Checksums MD5 (detectar mudanças)
+3. Logs de validação e compilação
+4. Timestamp em metadata.json
+
+## 🗑️ Limpeza (Futuro)
+
+Manter últimos 30 dias de relatórios para referência.
+Arquivar mais antigos (fase 2: S3 ou Kubernetes PV).
+
+## 📌 Git
+
+Não versioná-los em repo:
+- `.jasper` compilados podem ser grandes
+- PDFs não são fonte... resale source (`.jrxml` é suficiente)
+
+Ver `.gitignore` - `.jasper` e `output/*.pdf` podem ser excluídos.

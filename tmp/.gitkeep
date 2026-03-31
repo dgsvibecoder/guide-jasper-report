@@ -1,0 +1,7 @@
+# Pasta temporaria para modelos JRXML de estilo
+# 
+# Modelos JRXML colocados aqui servem APENAS como referencia visual para
+# extracao de estilo e design, nunca como fonte de dados ou semantica.
+#
+# Nao eh necessario versionar o conteudo dos modelos, apenas manter esta pasta
+# presente no repositorio git.

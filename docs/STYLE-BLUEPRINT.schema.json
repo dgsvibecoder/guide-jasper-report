@@ -1,0 +1,595 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guide-jasper-report/docs/STYLE-BLUEPRINT.schema.json",
+  "title": "Style Blueprint",
+  "description": "Contrato do artefato intermediario para reaplicar apenas layout/estilo de PDF legado ou JRXML-modelo em novo JRXML JasperReports 6.2.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "source",
+    "document",
+    "tokens",
+    "layout",
+    "rules",
+    "confidence",
+    "audit"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputMode",
+        "pdfReference",
+        "sourcePdfSha256"
+      ],
+      "properties": {
+        "inputMode": {
+          "type": "string",
+          "enum": [
+            "attachment",
+            "tmp-path",
+            "jrxml-template-path"
+          ]
+        },
+        "pdfReference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "jrxmlModelPath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Caminho relativo ou absoluto do arquivo JRXML-modelo em /tmp (apenas quando inputMode=jrxml-template-path)"
+        },
+        "sourcePdfSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "jrxmlModelSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash SHA256 do arquivo JRXML-modelo para auditoria (apenas quando inputMode=jrxml-template-path)"
+        },
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "application/pdf",
+            "text/xml",
+            "application/xml"
+          ],
+          "default": "application/pdf"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageSize",
+        "orientation",
+        "pageCount"
+      ],
+      "properties": {
+        "pageSize": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "widthPt",
+            "heightPt"
+          ],
+          "properties": {
+            "widthPt": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "heightPt": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "Portrait",
+            "Landscape"
+          ]
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pagesAnalyzed": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "marginsPt": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "top": {
+              "type": "number",
+              "minimum": 0
+            },
+            "right": {
+              "type": "number",
+              "minimum": 0
+            },
+            "bottom": {
+              "type": "number",
+              "minimum": 0
+            },
+            "left": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "font",
+        "colors",
+        "borders",
+        "spacing"
+      ],
+      "properties": {
+        "font": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "primaryFamily",
+            "fallbackFamily",
+            "sizesByRole"
+          ],
+          "properties": {
+            "primaryFamily": {
+              "type": "string",
+              "minLength": 1
+            },
+            "fallbackFamily": {
+              "type": "string",
+              "enum": [
+                "DejaVu Sans",
+                "DejaVu Serif"
+              ]
+            },
+            "sizesByRole": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "header",
+                "detail",
+                "footer"
+              ],
+              "properties": {
+                "title": {
+                  "type": "number",
+                  "minimum": 6
+                },
+                "header": {
+                  "type": "number",
+                  "minimum": 6
+                },
+                "detail": {
+                  "type": "number",
+                  "minimum": 6
+                },
+                "footer": {
+                  "type": "number",
+                  "minimum": 6
+                }
+              }
+            }
+          }
+        },
+        "colors": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "textPrimary",
+            "backgroundPrimary",
+            "borderPrimary",
+            "accent"
+          ],
+          "properties": {
+            "textPrimary": {
+              "$ref": "#/$defs/hexColor"
+            },
+            "backgroundPrimary": {
+              "$ref": "#/$defs/hexColor"
+            },
+            "borderPrimary": {
+              "$ref": "#/$defs/hexColor"
+            },
+            "accent": {
+              "$ref": "#/$defs/hexColor"
+            },
+            "zebraOdd": {
+              "$ref": "#/$defs/hexColor"
+            },
+            "zebraEven": {
+              "$ref": "#/$defs/hexColor"
+            }
+          }
+        },
+        "borders": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lineWidthPt",
+            "lineStyle"
+          ],
+          "properties": {
+            "lineWidthPt": {
+              "type": "number",
+              "minimum": 0
+            },
+            "lineStyle": {
+              "type": "string",
+              "enum": [
+                "solid",
+                "dashed"
+              ]
+            }
+          }
+        },
+        "spacing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "bandHeightsPt",
+            "cellPaddingPt"
+          ],
+          "properties": {
+            "bandHeightsPt": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "title",
+                "columnHeader",
+                "detail",
+                "pageFooter"
+              ],
+              "properties": {
+                "title": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "columnHeader": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "detail": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "pageFooter": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            },
+            "cellPaddingPt": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gridColumns",
+        "regions"
+      ],
+      "properties": {
+        "gridColumns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "widthRatio",
+              "alignment"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "widthRatio": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "exclusiveMaximum": 1
+              },
+              "alignment": {
+                "type": "string",
+                "enum": [
+                  "left",
+                  "center",
+                  "right"
+                ]
+              }
+            }
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "key",
+              "rows"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "key": {
+                "type": "string"
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        "regions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "columnHeader",
+            "detail",
+            "pageFooter"
+          ],
+          "properties": {
+            "title": {
+              "$ref": "#/$defs/region"
+            },
+            "columnHeader": {
+              "$ref": "#/$defs/region"
+            },
+            "detail": {
+              "$ref": "#/$defs/region"
+            },
+            "pageFooter": {
+              "$ref": "#/$defs/region"
+            }
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alignmentPriorityByDataType",
+        "truncatePolicy",
+        "fallbackPolicy"
+      ],
+      "properties": {
+        "alignmentPriorityByDataType": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "string",
+            "number",
+            "date"
+          ],
+          "properties": {
+            "string": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "number": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            },
+            "date": {
+              "type": "string",
+              "enum": [
+                "left",
+                "center",
+                "right"
+              ]
+            }
+          }
+        },
+        "truncatePolicy": {
+          "type": "string",
+          "enum": [
+            "truncate",
+            "stretch",
+            "wrap"
+          ]
+        },
+        "fallbackPolicy": {
+          "type": "string",
+          "enum": [
+            "strict-default-template",
+            "best-effort-style"
+          ]
+        }
+      }
+    },
+    "confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "global",
+        "byRegion"
+      ],
+      "properties": {
+        "global": {
+          "$ref": "#/$defs/confidenceValue"
+        },
+        "byRegion": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "columnHeader",
+            "detail",
+            "pageFooter"
+          ],
+          "properties": {
+            "title": {
+              "$ref": "#/$defs/confidenceValue"
+            },
+            "columnHeader": {
+              "$ref": "#/$defs/confidenceValue"
+            },
+            "detail": {
+              "$ref": "#/$defs/confidenceValue"
+            },
+            "pageFooter": {
+              "$ref": "#/$defs/confidenceValue"
+            }
+          }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generatedAt",
+        "decisions",
+        "fallbacks"
+      ],
+      "properties": {
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallbacks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fallbackRecommended": {
+          "type": "boolean"
+        }
+      }
+    },
+    "imageRegions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pageIndex",
+          "xPt",
+          "yPt",
+          "widthPt",
+          "heightPt",
+          "type",
+          "nativeWidth",
+          "nativeHeight"
+        ],
+        "properties": {
+          "pageIndex":    { "type": "integer", "minimum": 0 },
+          "xPt":         { "type": "number" },
+          "yPt":         { "type": "number" },
+          "widthPt":     { "type": "number", "exclusiveMinimum": 0 },
+          "heightPt":    { "type": "number", "exclusiveMinimum": 0 },
+          "type":        { "type": "string", "enum": ["raster", "stencil"] },
+          "nativeWidth": { "type": "integer", "minimum": 1 },
+          "nativeHeight":{ "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "ocr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "available",
+        "used"
+      ],
+      "properties": {
+        "available":      { "type": "boolean" },
+        "used":           { "type": "boolean" },
+        "reason":         { "type": "string" },
+        "pagesAttempted": { "type": "integer", "minimum": 0 },
+        "wordsExtracted": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "confidenceValue": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xPt",
+        "yPt",
+        "widthPt",
+        "heightPt"
+      ],
+      "properties": {
+        "xPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "yPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "widthPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "heightPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    }
+  }
+}

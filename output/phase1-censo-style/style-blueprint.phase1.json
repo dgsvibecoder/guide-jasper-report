@@ -1,0 +1,340 @@
+{
+  "schemaVersion": "1.0.0",
+  "source": {
+    "inputMode": "attachment",
+    "pdfReference": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/tmp/censo-ocupacional.pdf",
+    "sourcePdfSha256": "e1c952895403cc767dfdeb098011070a55336c9c0c4d0f5c37cfa8dd1b03611e",
+    "mimeType": "application/pdf",
+    "sizeBytes": 49526
+  },
+  "document": {
+    "pageSize": {
+      "widthPt": 791.0,
+      "heightPt": 612.28
+    },
+    "orientation": "Landscape",
+    "pageCount": 12
+  },
+  "tokens": {
+    "font": {
+      "primaryFamily": "Detected from legacy PDF page 1",
+      "fallbackFamily": "DejaVu Sans",
+      "sizesByRole": {
+        "title": 13.3,
+        "header": 10.0,
+        "detail": 8.0,
+        "footer": 8.0
+      }
+    },
+    "colors": {
+      "textPrimary": "#222222",
+      "backgroundPrimary": "#FFFFFF",
+      "borderPrimary": "#BFBFBF",
+      "accent": "#DCE6F1",
+      "zebraOdd": "#FFFFFF",
+      "zebraEven": "#F7F7F7"
+    },
+    "borders": {
+      "lineWidthPt": 0.5,
+      "lineStyle": "solid"
+    },
+    "spacing": {
+      "bandHeightsPt": {
+        "title": 45.0,
+        "columnHeader": 22.0,
+        "detail": 18.0,
+        "pageFooter": 24.0
+      },
+      "cellPaddingPt": 2
+    }
+  },
+  "layout": {
+    "gridColumns": [
+      {
+        "index": 0,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 1,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 2,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 3,
+        "widthRatio": 0.0042,
+        "alignment": "left"
+      },
+      {
+        "index": 4,
+        "widthRatio": 0.0115,
+        "alignment": "left"
+      },
+      {
+        "index": 5,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 6,
+        "widthRatio": 0.0113,
+        "alignment": "left"
+      },
+      {
+        "index": 7,
+        "widthRatio": 0.0091,
+        "alignment": "left"
+      },
+      {
+        "index": 8,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 9,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 10,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 11,
+        "widthRatio": 0.0084,
+        "alignment": "left"
+      },
+      {
+        "index": 12,
+        "widthRatio": 0.0084,
+        "alignment": "left"
+      },
+      {
+        "index": 13,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 14,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 15,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 16,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 17,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 18,
+        "widthRatio": 0.0042,
+        "alignment": "left"
+      },
+      {
+        "index": 19,
+        "widthRatio": 0.3483,
+        "alignment": "left"
+      },
+      {
+        "index": 20,
+        "widthRatio": 0.0091,
+        "alignment": "left"
+      },
+      {
+        "index": 21,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 22,
+        "widthRatio": 0.0112,
+        "alignment": "left"
+      },
+      {
+        "index": 23,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 24,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 25,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 26,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 27,
+        "widthRatio": 0.0112,
+        "alignment": "left"
+      },
+      {
+        "index": 28,
+        "widthRatio": 0.0084,
+        "alignment": "left"
+      },
+      {
+        "index": 29,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 30,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 31,
+        "widthRatio": 0.0193,
+        "alignment": "left"
+      },
+      {
+        "index": 32,
+        "widthRatio": 0.0084,
+        "alignment": "left"
+      },
+      {
+        "index": 33,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 34,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 35,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 36,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 37,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 38,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 39,
+        "widthRatio": 0.0214,
+        "alignment": "left"
+      },
+      {
+        "index": 40,
+        "widthRatio": 0.0105,
+        "alignment": "left"
+      },
+      {
+        "index": 41,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 42,
+        "widthRatio": 0.0077,
+        "alignment": "left"
+      },
+      {
+        "index": 43,
+        "widthRatio": 0.0035,
+        "alignment": "left"
+      },
+      {
+        "index": 44,
+        "widthRatio": 0.007,
+        "alignment": "left"
+      },
+      {
+        "index": 45,
+        "widthRatio": 0.2673,
+        "alignment": "left"
+      }
+    ],
+    "regions": {
+      "title": {
+        "xPt": 28.5,
+        "yPt": 67.71,
+        "widthPt": 459.56,
+        "heightPt": 7.82
+      },
+      "columnHeader": {
+        "xPt": 30.45,
+        "yPt": 91.74,
+        "widthPt": 555.25,
+        "heightPt": 5.58
+      },
+      "detail": {
+        "xPt": 32.31,
+        "yPt": 148.78,
+        "widthPt": 674.15,
+        "heightPt": 215.38
+      },
+      "pageFooter": {
+        "xPt": 28.5,
+        "yPt": 570.97,
+        "widthPt": 703.19,
+        "heightPt": 4.47
+      }
+    }
+  },
+  "rules": {
+    "alignmentPriorityByDataType": {
+      "string": "left",
+      "number": "right",
+      "date": "center"
+    },
+    "truncatePolicy": "truncate",
+    "fallbackPolicy": "strict-default-template"
+  },
+  "confidence": {
+    "global": 0.95,
+    "byRegion": {
+      "title": 0.85,
+      "columnHeader": 0.8,
+      "detail": 0.82,
+      "pageFooter": 0.75
+    }
+  },
+  "audit": {
+    "generatedAt": "2026-03-30T19:36:16.154901578Z",
+    "decisions": [
+      "Phase 1 extraction used first page only.",
+      "Title inferred from largest font in top 25% area.",
+      "Column header inferred from first multi-token line after title.",
+      "Detail inferred from modal token-count lines between header and footer."
+    ],
+    "fallbacks": [
+    ]
+  }
+}

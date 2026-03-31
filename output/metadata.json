@@ -1,0 +1,22 @@
+{
+  "reportName": "VENDAS_DIARIAS",
+  "generatedAt": "2026-03-30T17:23:35.910Z",
+  "source": "relatorio-vendas-2026.jrxml",
+  "outputs": {
+    "jrxml": "relatorio-vendas-2026.jrxml",
+    "jasper": "relatorio-vendas-2026.jasper",
+    "pdf": "relatorio-vendas-2026.pdf",
+    "log": "relatorio-vendas-2026.log"
+  },
+  "checksums": {
+    "jrxml": "7bb1a373311b4b3fc92b7c1d1c410c7b3d47c16d7c14c43c0b8a07f165aee558",
+    "jasper": "f74706e04213adb6162cdee240e5c8709923de945ba7c6c1be4e9ddb823f976b",
+    "pdf": "cb264798b5c4b299593e3debd4491ef52d4bc968e8ae2a30b6a43658442af651"
+  },
+  "validation": {
+    "paramsCount": 2,
+    "foundBands": 4,
+    "warnings": []
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

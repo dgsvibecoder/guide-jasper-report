@@ -1,0 +1,22 @@
+{
+  "reportName": "DISTRIBUICAO_ESITO_DIMISSIONE",
+  "generatedAt": "2026-03-31T12:01:32.520Z",
+  "source": "distribuicao-por-esito-dimissione.jrxml",
+  "outputs": {
+    "jrxml": "distribuicao-por-esito-dimissione.jrxml",
+    "jasper": "distribuicao-por-esito-dimissione.jasper",
+    "pdf": "distribuicao-por-esito-dimissione.pdf",
+    "log": "distribuicao-por-esito-dimissione.log"
+  },
+  "checksums": {
+    "jrxml": "7ab835925ca487c3bbcadd14205cb4de0e056e7e160a87f47709d5ff23f3ab7b",
+    "jasper": "bfc02a2dadd6ef59f6144bcc0743da671918caad28a2a57df4a476a952fd1460",
+    "pdf": "0d367f5da9413bb9dca33082ae048c452dafb6dee4089db02479656bd595ed52"
+  },
+  "validation": {
+    "paramsCount": 3,
+    "foundBands": 4,
+    "warnings": []
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

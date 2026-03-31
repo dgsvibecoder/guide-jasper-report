@@ -1,0 +1,44 @@
+{
+  "name": "jasper-generator-scripts",
+  "version": "1.0.0",
+  "description": "Scripts para validar e compilar relatorios JasperReports (.jrxml -> .jasper)",
+  "main": "compile.js",
+  "scripts": {
+    "validate": "node validate.js",
+    "compile": "node compile.js",
+    "test": "node test.js",
+    "generate-pdf": "node generate-pdf.js",
+    "build": "npm run validate && npm run compile && npm run generate-pdf",
+    "phase1:extract-style": "node extract-style-blueprint-phase1.js",
+    "phase1:apply-style": "node apply-style-blueprint-phase1.js",
+    "phase1:run": "node phase1-legacy-pdf-style.js",
+    "phase2:extract-style": "node extract-style-blueprint-phase2.js",
+    "phase2:apply-style": "node apply-style-blueprint-phase2.js",
+    "phase2:run": "node phase2-legacy-pdf-style.js",
+    "phase3:extract-style": "node extract-style-blueprint-phase3.js",
+    "phase3:apply-style": "node apply-style-blueprint-phase3.js",
+    "phase3:benchmark": "node visual-benchmark.js",
+    "phase3:run": "node phase3-legacy-pdf-style.js"
+  },
+  "dependencies": {
+    "xml2js": "^0.6.2",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "keywords": [
+    "jasper",
+    "jrxml",
+    "reports",
+    "jasperreports",
+    "pdf",
+    "compilation"
+  ],
+  "author": "Deploy Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}

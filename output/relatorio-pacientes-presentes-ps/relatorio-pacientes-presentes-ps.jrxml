@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+  name="RelatorioPacientesPresentesPS"
+  pageWidth="842"
+  pageHeight="595"
+  orientation="Landscape"
+  columnWidth="762"
+  leftMargin="40"
+  rightMargin="40"
+  topMargin="40"
+  bottomMargin="40">
+
+  <parameter name="idps" class="java.lang.String" isForPrompting="false">
+    <defaultValueExpression><![CDATA[null]]></defaultValueExpression>
+  </parameter>
+
+  <queryString>
+    <![CDATA[
+      SELECT
+        a.idazienda,
+        a.nomeazienda,
+        a.idps,
+        a.nomeps,
+        a.idaccesso,
+        a.idpaziente,
+        a.datainserimento,
+        a.dataaccettazione,
+        a.nomeurgenzaaccettazione
+      FROM accessops a
+      WHERE 1=1
+        AND ($P{idps} IS NULL OR CAST(a.idps AS VARCHAR) = $P{idps})
+        AND a.datadimissione IS NULL
+      ORDER BY a.dataaccettazione ASC
+    ]]>
+  </queryString>
+
+  <field name="idazienda" class="java.lang.String"/>
+  <field name="nomeazienda" class="java.lang.String"/>
+  <field name="idps" class="java.lang.String"/>
+  <field name="nomeps" class="java.lang.String"/>
+  <field name="idaccesso" class="java.lang.String"/>
+  <field name="idpaziente" class="java.lang.String"/>
+  <field name="datainserimento" class="java.util.Date"/>
+  <field name="dataaccettazione" class="java.util.Date"/>
+  <field name="nomeurgenzaaccettazione" class="java.lang.String"/>
+
+  <title>
+    <band height="55">
+      <staticText>
+        <reportElement x="0" y="0" width="762" height="28"/>
+        <textElement textAlignment="Center" verticalAlignment="Middle">
+          <font fontName="DejaVu Sans" size="16" isBold="true"/>
+        </textElement>
+        <text>Relatorio de pacientes ainda presentes no PS</text>
+      </staticText>
+
+      <staticText>
+        <reportElement x="0" y="34" width="110" height="14"/>
+        <textElement>
+          <font fontName="DejaVu Sans" size="9" isBold="true"/>
+        </textElement>
+        <text>Filtro ID PS:</text>
+      </staticText>
+      <textField>
+        <reportElement x="115" y="34" width="180" height="14"/>
+        <textElement>
+          <font fontName="DejaVu Sans" size="9"/>
+        </textElement>
+        <textFieldExpression><![CDATA[$P{idps} == null ? "Todos" : $P{idps}]]></textFieldExpression>
+      </textField>
+    </band>
+  </title>
+
+  <columnHeader>
+    <band height="24">
+      <rectangle>
+        <reportElement x="0" y="0" width="762" height="24" backcolor="#335c81"/>
+      </rectangle>
+
+      <staticText><reportElement x="2" y="5" width="50" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>IDAz</text></staticText>
+      <staticText><reportElement x="53" y="5" width="112" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>Nome Azienda</text></staticText>
+      <staticText><reportElement x="166" y="5" width="42" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>ID PS</text></staticText>
+      <staticText><reportElement x="209" y="5" width="96" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>Nome PS</text></staticText>
+      <staticText><reportElement x="306" y="5" width="62" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>ID Accesso</text></staticText>
+      <staticText><reportElement x="369" y="5" width="62" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>ID Paziente</text></staticText>
+      <staticText><reportElement x="432" y="5" width="90" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>Inserimento</text></staticText>
+      <staticText><reportElement x="523" y="5" width="90" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>Accettazione</text></staticText>
+      <staticText><reportElement x="614" y="5" width="146" height="14" forecolor="#FFFFFF"/><textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8" isBold="true"/></textElement><text>Urgenza Accettazione</text></staticText>
+    </band>
+  </columnHeader>
+
+  <detail>
+    <band height="18">
+      <rectangle>
+        <reportElement x="0" y="0" width="762" height="18" backcolor="#F5F8FA"/>
+      </rectangle>
+
+      <textField><reportElement x="2" y="2" width="50" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{idazienda}]]></textFieldExpression></textField>
+      <textField><reportElement x="53" y="2" width="112" height="14"/><textElement verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{nomeazienda}]]></textFieldExpression></textField>
+      <textField><reportElement x="166" y="2" width="42" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{idps}]]></textFieldExpression></textField>
+      <textField><reportElement x="209" y="2" width="96" height="14"/><textElement verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{nomeps}]]></textFieldExpression></textField>
+      <textField><reportElement x="306" y="2" width="62" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{idaccesso}]]></textFieldExpression></textField>
+      <textField><reportElement x="369" y="2" width="62" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{idpaziente}]]></textFieldExpression></textField>
+      <textField pattern="dd/MM/yyyy HH:mm"><reportElement x="432" y="2" width="90" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{datainserimento}]]></textFieldExpression></textField>
+      <textField pattern="dd/MM/yyyy HH:mm"><reportElement x="523" y="2" width="90" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{dataaccettazione}]]></textFieldExpression></textField>
+      <textField><reportElement x="614" y="2" width="146" height="14"/><textElement textAlignment="Center" verticalAlignment="Middle"><font fontName="DejaVu Sans" size="7"/></textElement><textFieldExpression><![CDATA[$F{nomeurgenzaaccettazione}]]></textFieldExpression></textField>
+    </band>
+  </detail>
+
+  <pageFooter>
+    <band height="24">
+      <rectangle>
+        <reportElement x="0" y="0" width="762" height="24" backcolor="#EAEFF4"/>
+      </rectangle>
+
+      <staticText>
+        <reportElement x="6" y="7" width="300" height="11"/>
+        <textElement><font fontName="DejaVu Sans" size="7"/></textElement>
+        <text>Relatorio gerado automaticamente - JasperReports 6.2.0</text>
+      </staticText>
+
+      <textField>
+        <reportElement x="688" y="7" width="34" height="11"/>
+        <textElement textAlignment="Right"><font fontName="DejaVu Sans" size="7"/></textElement>
+        <textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+      </textField>
+      <staticText>
+        <reportElement x="723" y="7" width="10" height="11"/>
+        <textElement textAlignment="Center"><font fontName="DejaVu Sans" size="7"/></textElement>
+        <text>/</text>
+      </staticText>
+      <textField>
+        <reportElement x="734" y="7" width="26" height="11"/>
+        <textElement><font fontName="DejaVu Sans" size="7"/></textElement>
+        <textFieldExpression><![CDATA[$V{PAGE_COUNT}]]></textFieldExpression>
+      </textField>
+    </band>
+  </pageFooter>
+
+</jasperReport>

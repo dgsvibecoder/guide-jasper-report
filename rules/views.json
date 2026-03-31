@@ -1,0 +1,600 @@
+{
+  "version": "1.0",
+  "description": "Definição de views disponíveis e campos válidos para geração de relatórios",
+  "lastUpdated": "2026-03-30",
+  "jasperVersion": "6.2.0",
+  
+  "datasource": {
+    "driver": "org.postgresql.Driver",
+    "defaultType": "PostgreSQL",
+    "supportedTypes": ["MySQL", "PostgreSQL", "SQL Server", "Oracle"]
+  },
+
+  "views": {
+    "view_vendas_diarias": {
+      "displayName": "Vendas Diárias",
+      "description": "Vendas agregadas por item, quantidade, valor e vendedor",
+      "schema": "public",
+      "source": "Tabela de Vendas + Itens",
+      "refreshFrequency": "Diária",
+      "lastValidated": "2026-03-15",
+      
+      "validFields": [
+        {
+          "name": "data",
+          "type": "DATE",
+          "label": "Data da Venda",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-30"
+        },
+        {
+          "name": "item_nome",
+          "type": "VARCHAR(255)",
+          "label": "Nome do Item",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Produto XYZ"
+        },
+        {
+          "name": "item_codigo",
+          "type": "VARCHAR(20)",
+          "label": "Código Item",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "ITEM-001"
+        },
+        {
+          "name": "quantidade",
+          "type": "INT",
+          "label": "Quantidade",
+          "isKey": false,
+          "sortable": false,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG", "COUNT"],
+          "example": 100
+        },
+        {
+          "name": "valor_unitario",
+          "type": "DECIMAL(10,2)",
+          "label": "Valor Unitário R$",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG"],
+          "example": 99.99
+        },
+        {
+          "name": "valor_total",
+          "type": "DECIMAL(12,2)",
+          "label": "Valor Total R$",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG"],
+          "example": 9999.00
+        },
+        {
+          "name": "vendedor_nome",
+          "type": "VARCHAR(255)",
+          "label": "Nome do Vendedor",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "João Silva"
+        },
+        {
+          "name": "vendedor_id",
+          "type": "INT",
+          "label": "ID Vendedor",
+          "isKey": false,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": 1001
+        },
+        {
+          "name": "categoria",
+          "type": "VARCHAR(100)",
+          "label": "Categoria",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Eletrônicos"
+        }
+      ]
+    },
+
+    "view_pacientes_atendidos": {
+      "displayName": "Pacientes Atendidos",
+      "description": "Registro de atendimentos em clínica com dados de paciente e procedimento",
+      "schema": "public",
+      "source": "Tabela de Atendimentos + Pacientes + Procedimentos",
+      "refreshFrequency": "Contínua",
+      "lastValidated": "2026-03-25",
+      
+      "validFields": [
+        {
+          "name": "data_atendimento",
+          "type": "DATE",
+          "label": "Data do Atendimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-30"
+        },
+        {
+          "name": "hora_atendimento",
+          "type": "TIME",
+          "label": "Hora do Atendimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": false,
+          "example": "14:30:00"
+        },
+        {
+          "name": "paciente_id",
+          "type": "INT",
+          "label": "ID Paciente",
+          "isKey": true,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": 5001
+        },
+        {
+          "name": "paciente_nome",
+          "type": "VARCHAR(500)",
+          "label": "Nome do Paciente",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Maria Santos"
+        },
+        {
+          "name": "paciente_cpf",
+          "type": "VARCHAR(11)",
+          "label": "CPF do Paciente",
+          "isKey": false,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "12345678901",
+          "sensitive": true
+        },
+        {
+          "name": "paciente_idade",
+          "type": "INT",
+          "label": "Idade",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["AVG", "COUNT"],
+          "example": 45
+        },
+        {
+          "name": "procedimento_codigo",
+          "type": "VARCHAR(10)",
+          "label": "Código Procedimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "PROC-001"
+        },
+        {
+          "name": "procedimento_descricao",
+          "type": "VARCHAR(500)",
+          "label": "Descrição Procedimento",
+          "isKey": false,
+          "sortable": false,
+          "filterable": false,
+          "aggregatable": false,
+          "example": "Consulta de rotina com check-up completo"
+        },
+        {
+          "name": "procedimento_categoria",
+          "type": "VARCHAR(100)",
+          "label": "Categoria Procedimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Clínica Geral"
+        },
+        {
+          "name": "profissional_id",
+          "type": "INT",
+          "label": "ID Profissional",
+          "isKey": false,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": 2001
+        },
+        {
+          "name": "profissional_nome",
+          "type": "VARCHAR(255)",
+          "label": "Nome do Profissional",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Dr. João Silva"
+        },
+        {
+          "name": "valor_procedimento",
+          "type": "DECIMAL(10,2)",
+          "label": "Valor do Procedimento R$",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG"],
+          "example": 150.00
+        },
+        {
+          "name": "tempo_duracao_minutos",
+          "type": "INT",
+          "label": "Duração (min)",
+          "isKey": false,
+          "sortable": false,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["AVG", "SUM"],
+          "example": 30
+        },
+        {
+          "name": "status_atendimento",
+          "type": "VARCHAR(20)",
+          "label": "Status",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "allowedValues": ["CONCLUÍDO", "CANCELADO", "NÃO_COMPARECEU"],
+          "example": "CONCLUÍDO"
+        }
+      ]
+    },
+
+    "accessops": {
+      "displayName": "Registro de Acesso PS",
+      "description": "Registro de acessos ao Posto de Saúde (PS) de pacientes com histórico de inserimento, aceitação e dimissão",
+      "schema": "public",
+      "source": "Tabela de Acessos PS + Aziendas + Pacientes",
+      "refreshFrequency": "Contínua",
+      "lastValidated": "2026-03-30",
+      
+      "validFields": [
+        {
+          "name": "idazienda",
+          "type": "VARCHAR(50)",
+          "label": "ID Empresa",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "HA1"
+        },
+        {
+          "name": "nomeazienda",
+          "type": "VARCHAR(500)",
+          "label": "Nome da Empresa",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Empresa ABC Saúde"
+        },
+        {
+          "name": "idps",
+          "type": "VARCHAR(50)",
+          "label": "ID Posto de Saúde",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "PS1"
+        },
+        {
+          "name": "nomeps",
+          "type": "VARCHAR(500)",
+          "label": "Nome do Posto de Saúde",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "PS Centro - São Paulo"
+        },
+        {
+          "name": "idaccesso",
+          "type": "VARCHAR(50)",
+          "label": "ID Acesso",
+          "isKey": true,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "ACC1"
+        },
+        {
+          "name": "idpaziente",
+          "type": "VARCHAR(50)",
+          "label": "ID Paciente",
+          "isKey": false,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "R100"
+        },
+        {
+          "name": "datainserimento",
+          "type": "TIMESTAMP",
+          "label": "Data/Hora Inserimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-30 08:30:45"
+        },
+        {
+          "name": "dataaccettazione",
+          "type": "TIMESTAMP",
+          "label": "Data/Hora Aceitação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-30 08:35:00"
+        },
+        {
+          "name": "datadimissione",
+          "type": "TIMESTAMP",
+          "label": "Data/Hora Dimissão",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": false,
+          "nullable": true,
+          "example": "2026-03-30 14:45:30"
+        },
+        {
+          "name": "idcodiceesterno",
+          "type": "VARCHAR(100)",
+          "label": "ID Código Externo",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "EXT-2026-00123"
+        },
+        {
+          "name": "ticket",
+          "type": "DECIMAL(10,2)",
+          "label": "Ticket/Protocolo",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG"],
+          "example": 36.50
+        },
+        {
+          "name": "nomeurgenzaaccettazione",
+          "type": "VARCHAR(255)",
+          "label": "Nome Urgenza Aceitação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Verde"
+        },
+        {
+          "name": "codmurgenzaaccettazione",
+          "type": "VARCHAR(50)",
+          "label": "Código Urgenza Aceitação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "U2"
+        },
+        {
+          "name": "prioritaurgenzaaccettazione",
+          "type": "INT",
+          "label": "Prioridade Urgenza Aceitação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": 2
+        },
+        {
+          "name": "nomeesitodimissione",
+          "type": "VARCHAR(255)",
+          "label": "Nome Esito Dimissione",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Dimesso a domicilio"
+        },
+        {
+          "name": "codmesitodimissione",
+          "type": "VARCHAR(50)",
+          "label": "Código Esito Dimissione",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "DOM"
+        },
+        {
+          "name": "categoriaesitodimissione",
+          "type": "VARCHAR(100)",
+          "label": "Categoria Esito Dimissione",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "DOMICILIO"
+        },
+        {
+          "name": "qtde",
+          "type": "BIGINT",
+          "label": "Quantidade",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG", "COUNT"],
+          "example": 10
+        },
+        {
+          "name": "qtde_acessos",
+          "type": "BIGINT",
+          "label": "Quantidade de Acessos",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM", "AVG", "COUNT"],
+          "example": 120
+        }
+      ]
+    },
+
+    "view_receita_por_mes": {
+      "displayName": "Receita por Mês",
+      "description": "Agregação mensal de vendas e receitas (view pré-agregada)",
+      "schema": "public",
+      "source": "View agregada de vendas com GROUP BY mês",
+      "refreshFrequency": "Diária",
+      "lastValidated": "2026-03-20",
+      
+      "validFields": [
+        {
+          "name": "ano_mes",
+          "type": "VARCHAR(7)",
+          "label": "Ano-Mês",
+          "isKey": true,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03",
+          "format": "YYYY-MM"
+        },
+        {
+          "name": "total_vendas",
+          "type": "DECIMAL(15,2)",
+          "label": "Total Vendas R$",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM"],
+          "example": 100000.00
+        },
+        {
+          "name": "quantidade_vendas",
+          "type": "INT",
+          "label": "Quantidade Vendas",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": true,
+          "aggregations": ["SUM"],
+          "example": 500
+        },
+        {
+          "name": "ticket_medio",
+          "type": "DECIMAL(10,2)",
+          "label": "Ticket Médio R$",
+          "isKey": false,
+          "sortable": true,
+          "filterable": false,
+          "aggregatable": false,
+          "example": 200.00
+        },
+        {
+          "name": "quantidade_vendedores",
+          "type": "INT",
+          "label": "Qtd Vendedores",
+          "isKey": false,
+          "sortable": false,
+          "filterable": false,
+          "aggregatable": false,
+          "example": 15
+        }
+      ]
+    }
+  },
+
+  "validations": {
+    "sqlRules": [
+      "Use SELECT explícito: nunca SELECT *",
+      "Use WHERE 1=1 como base para condições dinâmicas",
+      "Sempre parametrize filtros com $P{paramName}",
+      "Inclua ORDER BY para ordenação lógica",
+      "Limit 1000 registros por padrão (para performance)",
+      "Typecast datas: DATE(campoData) se necessário",
+      "Agregações: SUM, AVG, COUNT, MIN, MAX apenas"
+    ],
+    "jrxmlRules": [
+      "Sempre use 4 bandas: title, columnHeader, detail, pageFooter",
+      "Parâmetros antes de queryString",
+      "Campos devem mapear campos SQL",
+      "Tipos Java corretos: String, Date, Integer, BigDecimal",
+      "Font padrão: DejaVu Sans",
+      "Margins mínimos: 10px em todos lados",
+      "Width colunas: 515px total (page width - margins)"
+    ]
+  },
+
+  "typeMapping": {
+    "SQL_JDBC": {
+      "DATE": "java.time.LocalDate",
+      "TIME": "java.time.LocalTime",
+      "DATETIME": "java.time.LocalDateTime",
+      "TIMESTAMP": "java.util.Date",
+      "INT": "java.lang.Integer",
+      "BIGINT": "java.lang.Long",
+      "DECIMAL": "java.math.BigDecimal",
+      "FLOAT": "java.lang.Double",
+      "VARCHAR": "java.lang.String",
+      "CHAR": "java.lang.String",
+      "TEXT": "java.lang.String",
+      "BOOLEAN": "java.lang.Boolean"
+    }
+  },
+
+  "examples": {
+    "simpleQuery": "SELECT data, item_nome, valor_total FROM view_vendas_diarias WHERE 1=1 AND data >= $P{dataInicio} AND data <= $P{dataFim} ORDER BY data DESC",
+    
+    "aggregateQuery": "SELECT vendedor_nome, SUM(valor_total) as total_vendas, COUNT(*) as quantidade FROM view_vendas_diarias WHERE 1=1 AND data >= $P{dataInicio} AND data <= $P{dataFim} GROUP BY vendedor_nome ORDER BY total_vendas DESC",
+    
+    "filteredQuery": "SELECT paciente_nome, data_atendimento, procedimento_descricao, valor_procedimento FROM view_pacientes_atendidos WHERE 1=1 AND profissional_id = $P{profissionalId} AND data_atendimento >= $P{dataInicio} ORDER BY data_atendimento DESC"
+  },
+
+  "notes": [
+    "Versão 1.0 - Inicial com 3 views de exemplo",
+    "Para adicionar nova view: 1) Criar VIEW no BD, 2) Adicionar aqui com campos, 3) Validar tipos",
+    "Campos sensitive (ex: CPF): marcar com sensitive=true",
+    "Atualizar lastValidated regularmente verificando dados no BD"
+  ]
+}
