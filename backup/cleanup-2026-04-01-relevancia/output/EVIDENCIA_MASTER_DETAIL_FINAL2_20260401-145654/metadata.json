@@ -1,0 +1,56 @@
+{
+  "reportName": "SMOKE_MASTER_001",
+  "generatedAt": "2026-04-01T17:57:03.842Z",
+  "format": "MASTER_DETAIL",
+  "reportTopology": {
+    "type": "MASTER_DETAIL",
+    "masterFile": "master.jrxml",
+    "detailFiles": [
+      "detail.jrxml"
+    ],
+    "relationKeys": [
+      "accessops_medicalEvents"
+    ],
+    "parameterBindings": {
+      "SUBREPORT_DETAIL_PATH": "detail.jasper"
+    }
+  },
+  "outputs": {
+    "masterJrxml": "master.jrxml",
+    "masterJasper": "master.jasper",
+    "detailJrxml": "detail.jrxml",
+    "detailJasper": "detail.jasper",
+    "pdf": "master.pdf",
+    "log": "master.log"
+  },
+  "checksums": {
+    "masterJrxml": "c2cf5a00d7acb01632f36b702bab8abceec01f033f404b33d4d7aa3c4056f8ec",
+    "masterJasper": "df54d439915664a2cb52db4a716a1aab86ce557c3d0798a7ddb43e6ce7b973f2",
+    "detailJrxml": "395172b44dd28b5fe44bc9e164e28e15466e9e46e00e8ab86e8f87de985e9e8e",
+    "detailJasper": "5095a0275cc7b0e77ef14bd66cb85863dc329e5170e4fa543edc85b885797d73",
+    "pdf": "c0759d0ed264ba5217b23b0027fedcacd7c927783a5e642dd8883319499a9230"
+  },
+  "validation": {
+    "masterXmlValid": true,
+    "detailXmlValid": true,
+    "semanticValidation": "passed",
+    "relationshipKey": "accessops_medicalEvents"
+  },
+  "diagnostics": {
+    "mode": "MASTER_DETAIL",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/EVIDENCIA_MASTER_DETAIL_FINAL2_20260401-145654",
+    "emptyDataRisk": {
+      "hasPdf": true,
+      "pdfSizeBytes": 2780,
+      "possibleEmptyData": false,
+      "severity": "info",
+      "message": "PDF size looks healthy (2780 bytes)."
+    },
+    "troubleshootingHints": [
+      "Se o detalhe estiver vazio, valide relation key e parâmetro subreport.",
+      "Se PDF vier muito pequeno, revise filtros de data e classes de <field>.",
+      "Use master.log para identificar a etapa que falhou no pipeline 2-stage."
+    ]
+  },
+  "note": "Master/Detail report compiled with 2-stage pipeline (Fase 4)."
+}

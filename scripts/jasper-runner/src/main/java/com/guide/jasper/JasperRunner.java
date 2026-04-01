@@ -7,15 +7,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -30,6 +39,7 @@ import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.util.JRLoader;
 
 public class JasperRunner {
@@ -61,7 +71,10 @@ public class JasperRunner {
                 break;
             case "pdf-with-data":
                 requireArgs(args, 6);
-                exportPdfWithData(args[1], args[2], args[3], args[4], args[5]);
+                {
+                    Map<String, String> extraParams = parseKeyValueArgs(args, 6);
+                    exportPdfWithData(args[1], args[2], args[3], args[4], args[5], extraParams);
+                }
                 break;
             case "extract-style-blueprint-phase1":
                 requireArgs(args, 3);
@@ -715,15 +728,182 @@ public class JasperRunner {
         System.out.println("OK Generated pdf: " + pdfPath);
     }
 
-    private static void exportPdfWithData(String jasperPath, String pdfPath, String dbUrl, String dbUser, String dbPassword) throws Exception {
+    /**
+     * Parses optional KEY=VALUE arguments starting at startIndex.
+     * Used to pass extra report parameters (e.g. SUBREPORT_DETAIL_PATH=...) to fillReport.
+     */
+    private static Map<String, String> parseKeyValueArgs(String[] args, int startIndex) {
+        Map<String, String> result = new LinkedHashMap<>();
+        for (int i = startIndex; i < args.length; i++) {
+            int eq = args[i].indexOf('=');
+            if (eq > 0) {
+                result.put(args[i].substring(0, eq), args[i].substring(eq + 1));
+            }
+        }
+        return result;
+    }
+
+    private static Map<String, Class<?>> getDeclaredParameterTypes(JasperReport report) {
+        Map<String, Class<?>> declaredTypes = new HashMap<>();
+        for (JRParameter parameter : report.getParameters()) {
+            if (parameter == null || parameter.isSystemDefined()) {
+                continue;
+            }
+            declaredTypes.put(parameter.getName(), parameter.getValueClass());
+        }
+        return declaredTypes;
+    }
+
+    private static Date parseDateValue(String raw) throws ParseException {
+        String value = raw.trim();
+
+        try {
+            return Date.from(Instant.parse(value));
+        } catch (Exception ignored) {
+            // Fall through to other formats.
+        }
+
+        try {
+            LocalDate localDate = LocalDate.parse(value);
+            return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        } catch (Exception ignored) {
+            // Fall through to other formats.
+        }
+
+        try {
+            LocalDateTime localDateTime = LocalDateTime.parse(value);
+            return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        } catch (Exception ignored) {
+            // Fall through to legacy patterns.
+        }
+
+        String[] patterns = new String[] {
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "dd/MM/yyyy",
+            "dd/MM/yyyy HH:mm:ss",
+            "dd/MM/yyyy HH:mm"
+        };
+
+        ParseException lastError = null;
+        for (String pattern : patterns) {
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            sdf.setLenient(false);
+            try {
+                return sdf.parse(value);
+            } catch (ParseException e) {
+                lastError = e;
+            }
+        }
+
+        if (lastError != null) {
+            throw lastError;
+        }
+        throw new ParseException("Could not parse date value: " + raw, 0);
+    }
+
+    private static Object coerceParameterValue(String paramName, String rawValue, Class<?> targetType) {
+        if (rawValue == null) {
+            return null;
+        }
+
+        String trimmed = rawValue.trim();
+        if (trimmed.isEmpty() || "null".equalsIgnoreCase(trimmed)) {
+            return null;
+        }
+
+        if (targetType == null || String.class.equals(targetType)) {
+            return rawValue;
+        }
+
+        try {
+            if (Integer.class.equals(targetType) || int.class.equals(targetType)) {
+                return Integer.valueOf(trimmed);
+            }
+            if (Long.class.equals(targetType) || long.class.equals(targetType)) {
+                return Long.valueOf(trimmed);
+            }
+            if (Short.class.equals(targetType) || short.class.equals(targetType)) {
+                return Short.valueOf(trimmed);
+            }
+            if (Double.class.equals(targetType) || double.class.equals(targetType)) {
+                return Double.valueOf(trimmed);
+            }
+            if (Float.class.equals(targetType) || float.class.equals(targetType)) {
+                return Float.valueOf(trimmed);
+            }
+            if (BigDecimal.class.equals(targetType)) {
+                return new BigDecimal(trimmed);
+            }
+            if (BigInteger.class.equals(targetType)) {
+                return new BigInteger(trimmed);
+            }
+            if (Boolean.class.equals(targetType) || boolean.class.equals(targetType)) {
+                if ("true".equalsIgnoreCase(trimmed) || "1".equals(trimmed) || "yes".equalsIgnoreCase(trimmed)) {
+                    return Boolean.TRUE;
+                }
+                if ("false".equalsIgnoreCase(trimmed) || "0".equals(trimmed) || "no".equalsIgnoreCase(trimmed)) {
+                    return Boolean.FALSE;
+                }
+                throw new IllegalArgumentException("Invalid boolean value: " + rawValue);
+            }
+            if (Date.class.equals(targetType)) {
+                return parseDateValue(trimmed);
+            }
+            if (java.sql.Date.class.equals(targetType)) {
+                return new java.sql.Date(parseDateValue(trimmed).getTime());
+            }
+            if (Timestamp.class.equals(targetType)) {
+                return new Timestamp(parseDateValue(trimmed).getTime());
+            }
+        } catch (Exception ex) {
+            String expected = targetType != null ? targetType.getName() : "java.lang.String";
+            throw new IllegalArgumentException(
+                "Failed to coerce parameter '" + paramName + "' value '" + rawValue + "' to " + expected,
+                ex
+            );
+        }
+
+        // Keep compatibility for unhandled/custom classes.
+        return rawValue;
+    }
+
+    private static void applyExtraParamsWithTypeCoercion(
+            JasperReport report,
+            Map<String, String> extraParams,
+            Map<String, Object> outputParams) {
+        Map<String, Class<?>> declaredTypes = getDeclaredParameterTypes(report);
+
+        for (Map.Entry<String, String> entry : extraParams.entrySet()) {
+            String name = entry.getKey();
+            String rawValue = entry.getValue();
+            Class<?> targetType = declaredTypes.get(name);
+
+            if (targetType == null) {
+                System.out.println("WARN param not declared in report: " + name + " (using String)");
+            }
+
+            Object coercedValue = coerceParameterValue(name, rawValue, targetType);
+            outputParams.put(name, coercedValue);
+            String typeLabel = targetType != null ? targetType.getSimpleName() : "String";
+            System.out.println("INFO param: " + name + " (" + typeLabel + ") = " + String.valueOf(coercedValue));
+        }
+    }
+
+    private static void exportPdfWithData(
+            String jasperPath, String pdfPath,
+            String dbUrl, String dbUser, String dbPassword,
+            Map<String, String> extraParams) throws Exception {
         ensureParentDir(pdfPath);
 
         // Ensure PostgreSQL driver is loaded
         Class.forName("org.postgresql.Driver");
-        
+
         JasperReport report = (JasperReport) JRLoader.loadObject(new File(jasperPath));
         Map<String, Object> params = new HashMap<>();
-        
+
+        applyExtraParamsWithTypeCoercion(report, extraParams, params);
+
         Connection conn = null;
         try {
             conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
@@ -760,7 +940,9 @@ public class JasperRunner {
         System.err.println("  java -jar jasper-runner.jar compile <report.jrxml> <report.jasper>");
         System.err.println("  java -jar jasper-runner.jar pdf <report.jrxml> <report.pdf>");
         System.err.println("  java -jar jasper-runner.jar pdf-from-jasper <report.jasper> <report.pdf>");
-        System.err.println("  java -jar jasper-runner.jar pdf-with-data <report.jasper> <report.pdf> <DB_URL> <DB_USER> <DB_PASSWORD>");
+        System.err.println("  java -jar jasper-runner.jar pdf-with-data <report.jasper> <report.pdf> <DB_URL> <DB_USER> <DB_PASSWORD> [KEY=VALUE ...]");
+        System.err.println("    Supported coercion for KEY=VALUE by declared JR parameter type: String, Integer, Long, Short, Double, Float, BigDecimal, BigInteger, Boolean, Date, Timestamp");
+        System.err.println("    Date formats: ISO-8601, yyyy-MM-dd, yyyy-MM-dd HH:mm:ss, dd/MM/yyyy, dd/MM/yyyy HH:mm:ss");
         System.err.println("  java -jar jasper-runner.jar extract-style-blueprint-phase1 <legacy.pdf> <style-blueprint.json>");
         System.err.println("  java -jar jasper-runner.jar extract-style-blueprint-phase2 <legacy.pdf> <style-blueprint.json>");
         System.err.println("  java -jar jasper-runner.jar extract-style-blueprint-phase3 <legacy.pdf> <style-blueprint.json> [--ocr]");

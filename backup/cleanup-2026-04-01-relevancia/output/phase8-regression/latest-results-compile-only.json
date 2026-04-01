@@ -1,0 +1,167 @@
+{
+  "phase": "FASE_8",
+  "generatedAt": "2026-04-01T17:34:47.132Z",
+  "mode": "compile-only",
+  "environment": {
+    "platform": "linux",
+    "node": "v22.16.0",
+    "workspaceRoot": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report"
+  },
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "status": "SUCCESS"
+  },
+  "tests": [
+    {
+      "name": "Precheck JasperRunner build",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 0,
+        "actualExitCode": 0,
+        "message": "jasper-runner build ready"
+      }
+    },
+    {
+      "name": "Smoke SIMPLE validation",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 0,
+        "actualExitCode": 0,
+        "message": "exit code 0 as expected",
+        "stdoutTail": [
+          "OK XML well-formed (report: SMOKE_TEST_SIMPLES_001)",
+          "OK 0 parameters found",
+          "OK 4/4 key bands found",
+          "OK VALIDATION SUCCESS"
+        ],
+        "stderrTail": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "Smoke SIMPLE compile",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 0,
+        "actualExitCode": 0,
+        "attempts": 1,
+        "message": "exit code 0 as expected",
+        "stdoutTail": [
+          "OK Generated /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_SIMPLES_001/smoke_test.jasper",
+          "OK Generated /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_SIMPLES_001/smoke_test.log",
+          "OK Generated /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_SIMPLES_001/metadata.json"
+        ],
+        "stderrTail": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "Smoke MASTER_DETAIL semantic validation",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 0,
+        "actualExitCode": 0,
+        "message": "exit code 0 as expected",
+        "stdoutTail": [
+          "OK XML well-formed (report: SMOKE_MASTER_001)",
+          "OK 3 parameters found",
+          "OK 4/4 key bands found",
+          "OK VALIDATION SUCCESS",
+          "",
+          "🔍 Master/Detail semantic validation...",
+          "OK MASTER_DETAIL SEMANTIC VALIDATION PASSED"
+        ],
+        "stderrTail": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "Smoke MASTER_DETAIL compile",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 0,
+        "actualExitCode": 0,
+        "attempts": 1,
+        "message": "exit code 0 as expected",
+        "stdoutTail": [
+          "[2026-04-01T17:34:43.956Z] INFO [Stage 5/5] PDF generation skipped (--pdf not specified)",
+          "[2026-04-01T17:34:43.957Z] INFO [Summary] Master rows: unknown (row count not exposed by current runtime)",
+          "[2026-04-01T17:34:43.957Z] INFO [Summary] Detail rows: unknown (row count not exposed by current runtime)",
+          "[2026-04-01T17:34:43.957Z] INFO [Summary] PDF not requested in this run (--pdf not specified)",
+          "OK [M/D] Compiled detail : /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_MD_001/detail.jasper",
+          "OK [M/D] Compiled master : /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_MD_001/master.jasper",
+          "OK [M/D] Log             : /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_MD_001/master.log",
+          "OK [M/D] Metadata        : /mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_MD_001/metadata.json"
+        ],
+        "stderrTail": [
+          ""
+        ]
+      }
+    },
+    {
+      "name": "Negative SIMPLE invalid view should fail validation",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 2,
+        "actualExitCode": 2,
+        "message": "exit code 2 as expected",
+        "stdoutTail": [
+          ""
+        ],
+        "stderrTail": [
+          "ERROR View not found in rules/views.json: view_does_not_exist",
+          "ERROR VALIDATION FAILED"
+        ]
+      }
+    },
+    {
+      "name": "Negative MASTER_DETAIL invalid relationship should fail compile precheck",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 3,
+        "actualExitCode": 3,
+        "message": "exit code 3 as expected",
+        "stdoutTail": [
+          "[2026-04-01T17:34:46.071Z] INFO [M/D] Master JRXML : master.jrxml",
+          "[2026-04-01T17:34:46.071Z] INFO [M/D] Detail JRXML : detail.jrxml",
+          "[2026-04-01T17:34:46.071Z] INFO [M/D] Relationship : relationship_that_does_not_exist",
+          "[2026-04-01T17:34:46.071Z] INFO [Stage 1/5] Validating master JRXML...",
+          "[2026-04-01T17:34:46.096Z] INFO [Stage 1/5] Master JRXML valid (SMOKE_MASTER_001)",
+          "[2026-04-01T17:34:46.096Z] INFO [Stage 2/5] Validating detail JRXML...",
+          "[2026-04-01T17:34:46.125Z] INFO [Stage 2/5] Detail JRXML valid (SMOKE_DETAIL_001)",
+          "[2026-04-01T17:34:46.125Z] INFO [Stage 2.5] Semantic M/D validation (relationship: relationship_that_does_not_exist)..."
+        ],
+        "stderrTail": [
+          "[2026-04-01T17:34:46.150Z] ERROR [M/D] Relationship 'relationship_that_does_not_exist' not found in rules/views.json. Available relationships: accessops_medicalEvents, vendedores_vendas, pacientes_triagem",
+          "[2026-04-01T17:34:46.150Z] ERROR [Stage 2.5] Semantic M/D validation FAILED — aborting"
+        ]
+      }
+    },
+    {
+      "name": "Negative MASTER_DETAIL hardcoded subreport path should fail semantic validation",
+      "passed": true,
+      "details": {
+        "expectedExitCode": 3,
+        "actualExitCode": 3,
+        "message": "exit code 3 as expected",
+        "stdoutTail": [
+          "OK XML well-formed (report: SMOKE_MASTER_001)",
+          "OK 3 parameters found",
+          "OK 4/4 key bands found",
+          "OK VALIDATION SUCCESS",
+          "",
+          "🔍 Master/Detail semantic validation..."
+        ],
+        "stderrTail": [
+          "ERROR MASTER_DETAIL SEMANTIC VALIDATION FAILED",
+          "ERROR [M/D] Subreport #1: path expression is not parameterized. Found: \"\"detail.jasper\"\". Must use $P{PARAM_NAME} — never hardcode a .jasper path."
+        ]
+      }
+    }
+  ]
+}

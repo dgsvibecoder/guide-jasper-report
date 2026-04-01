@@ -18,6 +18,12 @@
       "source": "Tabela de Vendas + Itens",
       "refreshFrequency": "Diária",
       "lastValidated": "2026-03-15",
+      "suggestedRoles": {
+        "masterCandidate": true,
+        "detailCandidate": true,
+        "preferredRole": "master",
+        "description": "Pode ser master (agrupado por vendedor) ou detail (itens individuais). Suporta agregação por vendedor com detalhe de itens diários"
+      },
       
       "validFields": [
         {
@@ -123,7 +129,12 @@
       "source": "Tabela de Atendimentos + Pacientes + Procedimentos",
       "refreshFrequency": "Contínua",
       "lastValidated": "2026-03-25",
-      
+      "suggestedRoles": {
+        "masterCandidate": true,
+        "detailCandidate": true,
+        "preferredRole": "detail",
+        "description": "Pode ser detail em relação com accessops (via paciente_id). Pode ser master para registros de triagem"
+      },
       "validFields": [
         {
           "name": "data_atendimento",
@@ -280,7 +291,12 @@
       "source": "Tabela de Acessos PS + Aziendas + Pacientes",
       "refreshFrequency": "Contínua",
       "lastValidated": "2026-03-30",
-      
+      "suggestedRoles": {
+        "masterCandidate": true,
+        "detailCandidate": false,
+        "preferredRole": "master",
+        "description": "Pode ser master em relação com view_pacientes_atendidos (via idpaziente). Ideal para resumir acessos com detalhe de procedimentos"
+      },
       "validFields": [
         {
           "name": "idazienda",
@@ -479,6 +495,185 @@
       ]
     },
 
+    "paziente": {
+      "displayName": "Listagem de Pacientes",
+      "description": "Listagem geral de pacientes do schema hero",
+      "schema": "hero",
+      "source": "Tabela/View hero.paziente",
+      "refreshFrequency": "Contínua",
+      "lastValidated": "2026-03-31",
+      "suggestedRoles": {
+        "masterCandidate": true,
+        "detailCandidate": false,
+        "preferredRole": "master",
+        "description": "Pode ser master em relação com view_pacientes_atendidos (via idpaziente). Ideal para exibir dados cadastrais com histórico de atendimentos"
+      },
+
+      "validFields": [
+        {
+          "name": "idpaziente",
+          "type": "VARCHAR(50)",
+          "label": "ID Paciente",
+          "isKey": true,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "P1001"
+        },
+        {
+          "name": "idpazienteesterno",
+          "type": "VARCHAR(100)",
+          "label": "ID Paciente Externo",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "EXT-9001"
+        },
+        {
+          "name": "cognome",
+          "type": "VARCHAR(255)",
+          "label": "Sobrenome",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Rossi"
+        },
+        {
+          "name": "nome",
+          "type": "VARCHAR(255)",
+          "label": "Nome",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Mario"
+        },
+        {
+          "name": "sesso",
+          "type": "VARCHAR(10)",
+          "label": "Sexo",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "M"
+        },
+        {
+          "name": "datanascita",
+          "type": "DATE",
+          "label": "Data de Nascimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "1980-05-21"
+        },
+        {
+          "name": "codicefiscale",
+          "type": "VARCHAR(50)",
+          "label": "Codice Fiscale",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "sensitive": true,
+          "example": "RSSMRA80E21H501U"
+        },
+        {
+          "name": "nomecomuneresidenza",
+          "type": "VARCHAR(255)",
+          "label": "Comune Residência",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Milano"
+        },
+        {
+          "name": "capcomuneresidenza",
+          "type": "VARCHAR(20)",
+          "label": "CAP",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "20100"
+        },
+        {
+          "name": "indirizzoresidenza",
+          "type": "VARCHAR(500)",
+          "label": "Endereço Residência",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Via Roma"
+        },
+        {
+          "name": "civicoresidenza",
+          "type": "VARCHAR(50)",
+          "label": "Número",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "15A"
+        },
+        {
+          "name": "idprovinciaresidenza",
+          "type": "VARCHAR(20)",
+          "label": "ID Província",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "MI"
+        },
+        {
+          "name": "telefono",
+          "type": "VARCHAR(50)",
+          "label": "Telefone",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "+39 02 123456"
+        },
+        {
+          "name": "cellulare",
+          "type": "VARCHAR(50)",
+          "label": "Celular",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "+39 333 1234567"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "label": "Email",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "mario.rossi@email.it"
+        },
+        {
+          "name": "dataaggiornamento",
+          "type": "TIMESTAMP",
+          "label": "Data Atualização",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-31 10:15:30"
+        }
+      ]
+    },
+
     "view_receita_por_mes": {
       "displayName": "Receita por Mês",
       "description": "Agregação mensal de vendas e receitas (view pré-agregada)",
@@ -486,6 +681,12 @@
       "source": "View agregada de vendas com GROUP BY mês",
       "refreshFrequency": "Diária",
       "lastValidated": "2026-03-20",
+      "suggestedRoles": {
+        "masterCandidate": true,
+        "detailCandidate": false,
+        "preferredRole": "master",
+        "description": "Pré-agregada por mês, ideal como master para comparações temporais. Não suporta detail (já é agregação)"
+      },
       
       "validFields": [
         {
@@ -542,6 +743,81 @@
           "example": 15
         }
       ]
+    }
+  },
+
+  "relationships": {
+    "description": "Definição de relacionamentos master/detail permitidos entre views",
+    "version": "2.0",
+    "lastUpdated": "2026-04-01",
+    
+    "accessops_medicalEvents": {
+      "name": "Acessos com Eventos Médicos",
+      "masterView": "accessops",
+      "detailView": "view_pacientes_atendidos",
+      "relationship": {
+        "localKey": "idpaziente",
+        "foreignKey": "paciente_id",
+        "cardinality": "1:N",
+        "joinType": "LEFT_OUTER_JOIN",
+        "description": "Cada acesso ao PS pode ter múltiplos eventos de atendimento/procedimento"
+      },
+      "validationRules": {
+        "masterKeysRequired": ["idaccesso", "idpaziente"],
+        "detailKeysRequired": ["paciente_id"],
+        "parameterBinding": {
+          "pacienteId": "idpaziente"
+        }
+      },
+      "contextMaster": "Registro de entrada do paciente no Posto de Saúde",
+      "contextDetail": "Procedimentos e atendimentos realizados"
+    },
+    
+    "vendedores_vendas": {
+      "name": "Vendedor com Itens de Venda",
+      "masterView": "view_vendas_diarias",
+      "detailView": "view_vendas_diarias",
+      "relationship": {
+        "localKey": "vendedor_id",
+        "foreignKey": "vendedor_id",
+        "groupByMaster": "vendedor_id",
+        "cardinality": "1:N",
+        "joinType": "INNER_JOIN",
+        "description": "Agregação: resumo por vendedor com detalhe de cada venda"
+      },
+      "validationRules": {
+        "masterKeysRequired": ["vendedor_id", "vendedor_nome"],
+        "detailKeysRequired": ["vendedor_id", "data", "item_nome"],
+        "masterGroupingFields": ["vendedor_id", "vendedor_nome"],
+        "detailGroupingFields": ["data", "item_nome", "categoria"],
+        "parameterBinding": {
+          "vendedorId": "vendedor_id"
+        }
+      },
+      "contextMaster": "Totalizador de vendas por vendedor",
+      "contextDetail": "Itens vendidos por dia/vendedor"
+    },
+    
+    "pacientes_triagem": {
+      "name": "Pacientes Atendidos com Triagem",
+      "masterView": "paziente",
+      "detailView": "view_pacientes_atendidos",
+      "relationship": {
+        "localKey": "idpaziente",
+        "foreignKey": "paciente_id",
+        "cardinality": "1:N",
+        "joinType": "LEFT_OUTER_JOIN",
+        "description": "Cada paciente cadastro pode ter múltiplos atendimentos"
+      },
+      "validationRules": {
+        "masterKeysRequired": ["idpaziente", "nome", "cognome"],
+        "detailKeysRequired": ["paciente_id"],
+        "parameterBinding": {
+          "pacienteId": "idpaziente"
+        }
+      },
+      "contextMaster": "Dados cadastrais do paciente",
+      "contextDetail": "Histórico de atendimentos do paciente"
     }
   },
 

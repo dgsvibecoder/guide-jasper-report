@@ -1,0 +1,71 @@
+{
+  "reportName": "SMOKE_TEST_SIMPLES_001",
+  "generatedAt": "2026-04-01T17:34:38.643Z",
+  "compiledAt": "2026-04-01T17:34:38.643Z",
+  "source": "smoke_test.jrxml",
+  "reportTopology": {
+    "type": "SIMPLE",
+    "masterFile": "smoke_test.jrxml",
+    "detailFiles": [],
+    "relationKeys": [],
+    "parameterBindings": {}
+  },
+  "outputs": {
+    "jrxml": "smoke_test.jrxml",
+    "jasper": "smoke_test.jasper",
+    "pdf": null,
+    "log": "smoke_test.log"
+  },
+  "checksums": {
+    "jrxml": "916dc6e68ac2a9c19c18d34463512c2b99105c02ef2d60ffd7aa5274a211d26f",
+    "jasper": "d9ea4845d1f683bd04144aa1c89bbf98d7606dd717fadaa788cec2e728874665",
+    "pdf": null
+  },
+  "jrxml": {
+    "file": "smoke_test.jrxml",
+    "hash": "916dc6e68ac2a9c19c18d34463512c2b99105c02ef2d60ffd7aa5274a211d26f"
+  },
+  "jasper": {
+    "file": "smoke_test.jasper",
+    "hash": "d9ea4845d1f683bd04144aa1c89bbf98d7606dd717fadaa788cec2e728874665",
+    "size": 23011,
+    "version": "JasperReports 6.2.0"
+  },
+  "pdf": null,
+  "styleSource": {
+    "type": "nativa",
+    "path": null,
+    "sha256": null,
+    "confidence": null,
+    "fallbackApplied": false,
+    "appliedAt": "2026-04-01T17:34:38.661Z"
+  },
+  "dataSource": {
+    "view": null,
+    "fields": [],
+    "filters": []
+  },
+  "validation": {
+    "xmlValid": true,
+    "sqlValid": true,
+    "contaminationCheck": "skipped",
+    "typeConsistency": "passed"
+  },
+  "diagnostics": {
+    "mode": "SIMPLE",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_SIMPLES_001",
+    "emptyDataRisk": {
+      "hasPdf": false,
+      "pdfSizeBytes": null,
+      "possibleEmptyData": null,
+      "severity": "info",
+      "message": "PDF not generated in this run."
+    },
+    "troubleshootingHints": [
+      "Se PDF vier pequeno, valide filtros e retorno da view.",
+      "Se houver erro de tipo, alinhe <field class> com rules/views.json.",
+      "Use o .log para rastrear em qual etapa (validate/compile/pdf) ocorreu falha."
+    ]
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

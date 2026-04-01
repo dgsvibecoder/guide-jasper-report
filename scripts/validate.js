@@ -157,6 +157,43 @@ function getAllExpressions(root) {
   return expressions;
 }
 
+// ─── Subreport helpers (Fase 3) ─────────────────────────────────────────────
+
+function getSubreports(root) {
+  return collectNodesByKey(root, 'subreport');
+}
+
+function getSubreportExpressions(root) {
+  const subreports = getSubreports(root);
+  return subreports.map((sr) => {
+    if (sr.subreportExpression && sr.subreportExpression.length > 0) {
+      return findNodeValue(sr.subreportExpression[0]);
+    }
+    return null;
+  });
+}
+
+function getSubreportParameterBindings(root) {
+  const subreports = getSubreports(root);
+  const bindings = [];
+  subreports.forEach((sr) => {
+    const paramNodes = sr.subreportParameter || [];
+    paramNodes.forEach((sp) => {
+      const name = sp.$ && sp.$.name ? sp.$.name : null;
+      const exprNode = sp.subreportParameterExpression
+        ? sp.subreportParameterExpression[0]
+        : null;
+      const valueExpression = exprNode ? findNodeValue(exprNode) : '';
+      if (name) bindings.push({ name, valueExpression });
+    });
+  });
+  return bindings;
+}
+
+function isMasterDetailFormat(root) {
+  return getSubreports(root).length > 0;
+}
+
 async function checkModelContamination(targetJrxmlPath, modelJrxmlPath) {
   const contaminations = [];
   
@@ -299,6 +336,297 @@ async function checkModelContamination(targetJrxmlPath, modelJrxmlPath) {
   }
   
   return contaminations;
+}
+
+// ─── Master/Detail semantic validator (Fase 3) ──────────────────────────────
+
+async function validateMasterDetail(masterJrxmlPath, detailJrxmlPath, rulesPath, relationshipKey) {
+  const errors = [];
+  const warnings = [];
+  const parser = new xml2js.Parser({ explicitArray: true, trim: true });
+
+  const resolvedMasterPath = path.resolve(masterJrxmlPath);
+  if (!fs.existsSync(resolvedMasterPath)) {
+    return { ok: false, errors: [`Master JRXML not found: ${resolvedMasterPath}`], warnings };
+  }
+
+  const masterXml = fs.readFileSync(resolvedMasterPath, 'utf8');
+  const masterParsed = await parser.parseStringPromise(masterXml);
+  const masterRoot = masterParsed.jasperReport;
+  if (!masterRoot) {
+    return { ok: false, errors: ['Master JRXML: root node <jasperReport> not found.'], warnings };
+  }
+
+  // 1. Subreport presence
+  const subreports = getSubreports(masterRoot);
+  if (subreports.length === 0) {
+    errors.push(
+      'MASTER_DETAIL: no <subreport> element found in master JRXML. ' +
+        'Master must contain at least one <subreport> element linking the detail report.'
+    );
+    return { ok: false, errors, warnings };
+  }
+
+  const masterParams = getParameterNames(masterRoot);
+  const masterFields = getFieldNames(masterRoot);
+
+  // 2. Subreport path parameterization — no hardcoded .jasper paths
+  const subreportExpressions = getSubreportExpressions(masterRoot);
+  subreportExpressions.forEach((expr, i) => {
+    if (!expr || !expr.trim()) {
+      errors.push(`Subreport #${i + 1}: <subreportExpression> is empty. Must reference $P{PARAM_NAME} pointing to compiled detail .jasper.`);
+      return;
+    }
+    const paramRef = expr.match(/\$P\{([a-zA-Z0-9_]+)\}/);
+    if (!paramRef) {
+      errors.push(
+        `Subreport #${i + 1}: path expression is not parameterized. ` +
+          `Found: "${expr}". Must use $P{PARAM_NAME} — never hardcode a .jasper path.`
+      );
+    } else {
+      const paramName = paramRef[1];
+      if (!masterParams.includes(paramName)) {
+        errors.push(
+          `Subreport #${i + 1}: parameter '${paramName}' used in <subreportExpression> ` +
+            `is not declared in master <parameter> list.`
+        );
+      }
+    }
+  });
+
+  // 3. Parameter bindings — must reference $F{field} or $P{param}, no literals
+  const paramBindings = getSubreportParameterBindings(masterRoot);
+  if (paramBindings.length === 0) {
+    warnings.push(
+      'MASTER_DETAIL: no <subreportParameter> bindings found. ' +
+        'Master should pass the join key to the detail via explicit parameter binding.'
+    );
+  }
+  paramBindings.forEach((binding) => {
+    const { name, valueExpression } = binding;
+    if (!valueExpression || !valueExpression.trim()) {
+      errors.push(`Parameter binding '${name}': <subreportParameterExpression> is empty.`);
+      return;
+    }
+    const fieldRef = valueExpression.match(/\$F\{([a-zA-Z0-9_]+)\}/);
+    const paramRef = valueExpression.match(/\$P\{([a-zA-Z0-9_]+)\}/);
+    if (!fieldRef && !paramRef) {
+      errors.push(
+        `Parameter binding '${name}': expression "${valueExpression}" must use ` +
+          '$F{field} or $P{param} — no hardcoded values in subreport parameter bindings.'
+      );
+    } else if (fieldRef) {
+      const fieldName = fieldRef[1];
+      if (!masterFields.includes(fieldName)) {
+        errors.push(
+          `Parameter binding '${name}': references $F{${fieldName}} which is not declared ` +
+            'in master <field> list.'
+        );
+      }
+    } else if (paramRef) {
+      const pName = paramRef[1];
+      if (!masterParams.includes(pName)) {
+        errors.push(
+          `Parameter binding '${name}': references $P{${pName}} which is not declared ` +
+            'in master <parameter> list.'
+        );
+      }
+    }
+  });
+
+  // 4. Cross-validate with detail JRXML
+  let detailRoot = null;
+  if (detailJrxmlPath) {
+    const resolvedDetailPath = path.resolve(detailJrxmlPath);
+    if (!fs.existsSync(resolvedDetailPath)) {
+      errors.push(`Detail JRXML not found: ${resolvedDetailPath}`);
+    } else {
+      const detailXml = fs.readFileSync(resolvedDetailPath, 'utf8');
+      const detailParsed = await parser.parseStringPromise(detailXml);
+      detailRoot = detailParsed.jasperReport;
+
+      if (!detailRoot) {
+        errors.push('Detail JRXML: root node <jasperReport> not found.');
+      } else {
+        const detailParams = getParameterNames(detailRoot);
+        const detailFieldNodes = detailRoot.field || [];
+
+        // 4a. Detail fields must all have a Java class declared
+        detailFieldNodes.forEach((f) => {
+          const fname = f.$ && f.$.name ? f.$.name : null;
+          const klass = f.$ && f.$.class ? f.$.class : null;
+          if (fname && !klass) {
+            errors.push(`Detail JRXML: field '${fname}' declared without Java class.`);
+          }
+        });
+
+        // 4b. Detail SQL must be parameterized — no hardcoded filter values
+        const detailQueryNode = detailRoot.queryString ? detailRoot.queryString[0] : null;
+        const detailSql = findNodeValue(detailQueryNode);
+        if (!detailSql || !detailSql.trim()) {
+          errors.push('Detail JRXML: queryString is empty.');
+        } else {
+          // Prohibit hardcoded literals in WHERE clause
+          const whereMatch = detailSql.match(/where\s+(.+)$/is);
+          if (whereMatch) {
+            const whereClause = whereMatch[1];
+            const hardcodedDatePattern = /['"`]\d{4}-\d{2}-\d{2}['"`]/;
+            const hardcodedNumberPattern = /=\s*\d+(?![a-zA-Z0-9_{}])/;
+            if (hardcodedDatePattern.test(whereClause)) {
+              errors.push(
+                'Detail JRXML: SQL WHERE clause contains a hardcoded date literal. ' +
+                  'All filter values must use $P{paramName}.'
+              );
+            }
+            if (hardcodedNumberPattern.test(whereClause)) {
+              // Allow WHERE 1=1 pattern
+              const withoutBaseline = whereClause.replace(/1\s*=\s*1/, '');
+              if (hardcodedNumberPattern.test(withoutBaseline)) {
+                warnings.push(
+                  'Detail JRXML: SQL WHERE clause may contain a hardcoded numeric literal. ' +
+                    'Verify all filter values use $P{paramName}.'
+                );
+              }
+            }
+          }
+
+          // 4c. Detail SQL parameterized references must be declared
+          const referencedDetailParams = Array.from(
+            detailSql.matchAll(/\$P\{([a-zA-Z0-9_]+)\}/g)
+          ).map((m) => m[1]);
+
+          if (referencedDetailParams.length === 0) {
+            errors.push(
+              'Detail JRXML: SQL has no $P{} parameters. ' +
+                'Detail must receive the join key via parameter and filter with $P{joinKeyParam}.'
+            );
+          }
+
+          referencedDetailParams.forEach((p) => {
+            if (!detailParams.includes(p)) {
+              errors.push(
+                `Detail JRXML: parameter $P{${p}} referenced in SQL but not declared ` +
+                  'in detail <parameter> list.'
+              );
+            }
+          });
+
+          // 4d. Each master binding parameter must be declared in detail
+          const boundNames = new Set(paramBindings.map((b) => b.name));
+          boundNames.forEach((bName) => {
+            if (!detailParams.includes(bName)) {
+              errors.push(
+                `Master passes parameter '${bName}' to detail but ` +
+                  `detail <parameter name="${bName}"> is not declared in detail JRXML.`
+              );
+            }
+          });
+        }
+      }
+    }
+  }
+
+  // 5. Cross-validate against rules/views.json relationship definition
+  if (rulesPath && relationshipKey) {
+    const resolvedRulesPath = path.resolve(rulesPath);
+    if (fs.existsSync(resolvedRulesPath)) {
+      const rules = readJson(resolvedRulesPath);
+      const relDef =
+        rules.relationships && rules.relationships[relationshipKey]
+          ? rules.relationships[relationshipKey]
+          : null;
+
+      if (!relDef) {
+        const available = Object.keys(rules.relationships || {}).filter(
+          (k) => !['description', 'version', 'lastUpdated'].includes(k)
+        );
+        errors.push(
+          `Relationship '${relationshipKey}' not found in rules/views.json. ` +
+            `Available relationships: ${available.join(', ') || '(none)'}`
+        );
+      } else {
+        const masterSql = findNodeValue(masterRoot.queryString ? masterRoot.queryString[0] : null);
+        const masterViewUsed = extractViewName(masterSql);
+        if (masterViewUsed && masterViewUsed !== relDef.masterView) {
+          warnings.push(
+            `Relationship '${relationshipKey}' expects masterView '${relDef.masterView}', ` +
+              `but master JRXML queries view '${masterViewUsed}'.`
+          );
+        }
+
+        // Required master keys must be declared as fields
+        const masterFieldSet = new Set(masterFields);
+        (relDef.validationRules.masterKeysRequired || []).forEach((key) => {
+          if (!masterFieldSet.has(key)) {
+            errors.push(
+              `Relationship '${relationshipKey}': required master key field '${key}' ` +
+                'not declared in master JRXML <field> list.'
+            );
+          }
+        });
+
+        // localKey must be declared as master field
+        const localKey = relDef.relationship.localKey;
+        if (localKey && !masterFieldSet.has(localKey)) {
+          errors.push(
+            `Relationship '${relationshipKey}': join localKey '${localKey}' is not declared ` +
+              'as a field in the master JRXML. Add <field name="' +
+              localKey +
+              '"> to the master report.'
+          );
+        }
+
+        // A binding should pass the localKey to the detail
+        if (localKey && paramBindings.length > 0) {
+          const joinBinding = paramBindings.find((b) => {
+            const expr = b.valueExpression || '';
+            return expr.includes(`$F{${localKey}}`) || expr.includes(`$P{${localKey}}`);
+          });
+          if (!joinBinding) {
+            warnings.push(
+              `Relationship '${relationshipKey}': join localKey '${localKey}' should be ` +
+                `passed to detail via <subreportParameter>, but no binding references $F{${localKey}}.`
+            );
+          }
+        }
+
+        // Cross-validate detail if provided
+        if (detailRoot) {
+          const detailSql = findNodeValue(
+            detailRoot.queryString ? detailRoot.queryString[0] : null
+          );
+          const detailViewUsed = extractViewName(detailSql);
+          if (detailViewUsed && detailViewUsed !== relDef.detailView) {
+            warnings.push(
+              `Relationship '${relationshipKey}' expects detailView '${relDef.detailView}', ` +
+                `but detail JRXML queries view '${detailViewUsed}'.`
+            );
+          }
+
+          const detailFieldSet = new Set(getFieldNames(detailRoot));
+          const detailParamSet = new Set(getParameterNames(detailRoot));
+          (relDef.validationRules.detailKeysRequired || []).forEach((key) => {
+            if (!detailFieldSet.has(key) && !detailParamSet.has(key)) {
+              errors.push(
+                `Relationship '${relationshipKey}': required detail key '${key}' not found ` +
+                  'as field or parameter in detail JRXML.'
+              );
+            }
+          });
+
+          const foreignKey = relDef.relationship.foreignKey;
+          if (foreignKey && detailSql && !detailSql.includes(foreignKey)) {
+            warnings.push(
+              `Relationship '${relationshipKey}': foreignKey '${foreignKey}' does not appear ` +
+                'in detail SQL WHERE clause. Ensure it is used as a filter condition.'
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return { ok: errors.length === 0, errors, warnings };
 }
 
 function normalizeSqlType(sqlType) {
@@ -464,17 +792,42 @@ function printResult(result) {
   }
 }
 
+function printMasterDetailResult(result) {
+  if (result.ok) {
+    console.log('OK MASTER_DETAIL SEMANTIC VALIDATION PASSED');
+    if (result.warnings.length) {
+      result.warnings.forEach((w) => console.log(`WARN [M/D] ${w}`));
+    }
+  } else {
+    console.error('ERROR MASTER_DETAIL SEMANTIC VALIDATION FAILED');
+    result.errors.forEach((e) => console.error(`ERROR [M/D] ${e}`));
+    result.warnings.forEach((w) => console.error(`WARN  [M/D] ${w}`));
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const jrxmlPath = args[0];
 
   let rulesPath = path.resolve(__dirname, '..', 'rules', 'views.json');
   let modelJrxmlPath = null;
+  let detailJrxmlPath = null;
+  let relationshipKey = null;
 
   for (let i = 1; i < args.length; i++) {
     const arg = args[i];
     if (arg === '--check-model-contamination') {
       modelJrxmlPath = args[i + 1] || null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--detail') {
+      detailJrxmlPath = args[i + 1] || null;
+      i += 1;
+      continue;
+    }
+    if (arg === '--relationship') {
+      relationshipKey = args[i + 1] || null;
       i += 1;
       continue;
     }
@@ -484,7 +837,11 @@ async function main() {
   }
 
   if (!jrxmlPath) {
-    console.error('Usage: node validate.js <report.jrxml> [rules/views.json] [--check-model-contamination <model.jrxml>]');
+    console.error(
+      'Usage: node validate.js <report.jrxml> [rules/views.json]\n' +
+        '  [--check-model-contamination <model.jrxml>]\n' +
+        '  [--detail <detail.jrxml>] [--relationship <relKey>]'
+    );
     process.exit(1);
   }
 
@@ -519,6 +876,27 @@ async function main() {
       }
     }
 
+    // Master/Detail semantic validation (Fase 3)
+    // Auto-detect: trigger if subreport present in JRXML, or --detail flag provided
+    const xmlForDetect = fs.readFileSync(path.resolve(jrxmlPath), 'utf8');
+    const parsedForDetect = await new xml2js.Parser({ explicitArray: true, trim: true }).parseStringPromise(xmlForDetect);
+    const rootForDetect = parsedForDetect.jasperReport;
+
+    if (rootForDetect && (isMasterDetailFormat(rootForDetect) || detailJrxmlPath)) {
+      console.log('');
+      console.log('🔍 Master/Detail semantic validation...');
+      const mdResult = await validateMasterDetail(
+        jrxmlPath,
+        detailJrxmlPath,
+        rulesPath,
+        relationshipKey
+      );
+      printMasterDetailResult(mdResult);
+      if (!mdResult.ok) {
+        process.exit(3);
+      }
+    }
+
     process.exit(result.ok ? 0 : 2);
   } catch (err) {
     console.error(`ERROR ${err.message}`);
@@ -530,4 +908,9 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { runValidation, checkModelContamination };
+module.exports = {
+  runValidation,
+  checkModelContamination,
+  validateMasterDetail,
+  isMasterDetailFormat,
+};

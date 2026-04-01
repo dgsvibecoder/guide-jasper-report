@@ -16,7 +16,24 @@ Descrição: [Exemplo: Relatório de vendas do período, agrupado por item e ven
 
 ---
 
-## 🔗 PASSO 2: Fonte de Dados (View SQL)
+## � PASSO 2: Cenário (Contexto do Negócio) ⭐ NOVO
+
+Descreva o contexto e motivação do relatório para ambito, destinatário e uso esperado.
+
+**Exemplos de Cenário:**
+- "Acompanhamento diário de vendas para equipe comercial validar performance"
+- "Relatório executivo de pacientes atendidos em clínica para diretoria"
+- "Análise semanal de receita agregada por mês para controller financeiro"
+
+```
+Cenário (Contexto + Por Quê):
+[Exemplo: Acompanhamento diário de vendas para equipe comercial, com foco em item mais vendido por vendedor. 
+Uso: Gerente acompanha performance em tempo real. Público: Vendedores + Gerência.]
+```
+
+---
+
+## 🔗 PASSO 3: Fonte de Dados (View SQL)
 
 Escolha a view do banco de dados onde os dados serão buscados.
 
@@ -32,7 +49,33 @@ View Selecionada: [Exemplo: view_vendas_diarias]
 
 ---
 
-## 📊 PASSO 3: Campos Desejados
+## 📊 PASSO 4: Agrupado Por (Dimensão/Agrupamento Principal) ⭐ NOVO
+
+Defina o campo ou combinação de campos que servirá como dimensão/agrupamento principal do relatório.
+Isso ajuda a definir a estrutura e ordem dos dados.
+
+**Exemplos:**
+- `data` → Relatório agrupado por dia
+- `vendedor_nome` → Relatório agrupado por vendedor
+- `categoria` → Relatório agrupado por categoria
+- `data, vendedor_nome` → Agrupado primeiro por data, depois por vendedor
+
+**Regra:**
+- Campo DEVE existir na view escolhida
+- Use para definir granularidade do relatório (que é a linha principal?)
+- Se não fizer sentido agrupar, use campo de identidade ou deixe vazio (todos os registros)
+
+```
+Agrupado Por (campo(s) dimensão):
+[Exemplo: data]
+
+Justificativa (por quê este agrupamento?):
+[Exemplo: Equipe quer ver uma linha por dia de vendas, para identificar dias com mais volume]
+```
+
+---
+
+## 📊 PASSO 5: Campos Desejados
 
 Liste os campos que devem aparecer no relatório.
 
@@ -54,7 +97,7 @@ Campos Desejados (separe por vírgula):
 
 ---
 
-## 🔍 PASSO 4: Filtros (Parâmetros)
+## 🔍 PASSO 6: Filtros (Parâmetros)
 
 Defina quais filtros o usuário pode aplicar ao gerar o relatório.
 
@@ -88,7 +131,7 @@ Filtro 2:
 
 ---
 
-## 🎨 PASSO 5: Layout e Estilo
+## 🎨 PASSO 7: Layout e Estilo
 
 Descreva como o relatório deve ser exibido.
 
@@ -115,7 +158,7 @@ Rodapé: Página X de Y, Total de registros, Data/Hora
 
 ---
 
-## 🎨 PASSO 5.1: NOVO - Modelo Visual JRXML (Opcional)
+## 🎨 PASSO 7.1: NOVO - Modelo Visual JRXML (Opcional)
 
 Se você tem um arquivo modelo `.jrxml` em `/tmp` para reutilizar design visual:
 
@@ -144,7 +187,7 @@ Descrição: [Exemplo: Modelo com logo empresa, header/footer padronizado]
 
 ---
 
-## 📄 PASSO 6: Arquivo Modelo Legado (Opcional - Deprecated)
+## 📄 PASSO 8: Arquivo Modelo Legado (Opcional - Deprecated)
 
 Se você tem um PDF ou JRXML de referência de layout legado, 
 coloque em `examples/` e mencione aqui:
@@ -156,7 +199,7 @@ Descrição: "Usar como referência visual de layout"
 
 ---
 
-## ✅ PASSO 7: Validação Antes de Submeter
+## ✅ PASSO 9: Validação Antes de Submeter
 
 Checklist:
 - [ ] Preencheu todos os campos (passos 1-5)?
@@ -178,13 +221,15 @@ Checklist:
 **Cole este prompt na Copilot Chat (Ctrl+I) após preencher acima:**
 
 ```
-Sou do time de deploy. Preciso gerar um relatório JasperReports customizado.
+Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MODO SIMPLES).
 
 📋 DETALHES DO RELATÓRIO:
 
 **Nome:** [NOME_RELATÓRIO]
 **Descrição:** [DESCRIÇÃO]
+**Cenário (Contexto):** [CENÁRIO_DO_NEGÓCIO]
 **View (fonte de dados):** [VIEW]
+**Agrupado Por (dimensão principal):** [CAMPO_AGRUPAMENTO]
 
 **Campos desejados:**
 [CAMPO1] (label: "[Label1]")
@@ -197,7 +242,7 @@ Sou do time de deploy. Preciso gerar um relatório JasperReports customizado.
 - [FILTRO2] (tipo: [TIPO], obrigatório: sim, label: "[Label]")
 
 **Layout:**
-[DESCRIÇÃO LAYOUT DO PASSO 5]
+[DESCRIÇÃO LAYOUT DO PASSO 7]
 
 ---
 
@@ -293,4 +338,4 @@ Veja em `docs/EXAMPLES.md`:
 
 ---
 
-**Versão do Template:** 1.0 | **Data:** 30 de Março de 2026
+**Versão do Template:** 1.1 (Fase 1) | **Data:** 1º de Abril de 2026 | **Mudanças:** +Cenário, +Agrupado Por

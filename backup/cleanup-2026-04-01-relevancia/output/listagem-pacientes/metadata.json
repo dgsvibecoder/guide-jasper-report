@@ -1,0 +1,52 @@
+{
+  "reportName": "LISTAGEM_PACIENTES",
+  "generatedAt": "2026-03-31T18:37:35.935Z",
+  "compiledAt": "2026-03-31T18:37:35.935Z",
+  "source": "listagem-pacientes.jrxml",
+  "outputs": {
+    "jrxml": "listagem-pacientes.jrxml",
+    "jasper": "listagem-pacientes.jasper",
+    "pdf": "listagem-pacientes.pdf",
+    "log": "listagem-pacientes.log"
+  },
+  "checksums": {
+    "jrxml": "699a8a65039d32d2f81b06839fe352edfaf91b36212ce596858a5c3e57147453",
+    "jasper": "8b502f0c6f4cb1f4877f8dd7defbe21872881d5587db344abcb2cd7bda470468",
+    "pdf": "f8bbeb8847611faafaf8befca15377a8ddb8556d1ffdebe01eb538a3168e8c06"
+  },
+  "jrxml": {
+    "file": "listagem-pacientes.jrxml",
+    "hash": "699a8a65039d32d2f81b06839fe352edfaf91b36212ce596858a5c3e57147453"
+  },
+  "jasper": {
+    "file": "listagem-pacientes.jasper",
+    "hash": "8b502f0c6f4cb1f4877f8dd7defbe21872881d5587db344abcb2cd7bda470468",
+    "size": 37715,
+    "version": "JasperReports 6.2.0"
+  },
+  "pdf": {
+    "file": "listagem-pacientes.pdf",
+    "size": 301587,
+    "hasData": true
+  },
+  "styleSource": {
+    "type": "nativa",
+    "path": null,
+    "sha256": null,
+    "confidence": null,
+    "fallbackApplied": false,
+    "appliedAt": "2026-03-31T18:37:35.953Z"
+  },
+  "dataSource": {
+    "view": null,
+    "fields": [],
+    "filters": []
+  },
+  "validation": {
+    "xmlValid": true,
+    "sqlValid": true,
+    "contaminationCheck": "skipped",
+    "typeConsistency": "passed"
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

@@ -1,0 +1,75 @@
+{
+  "reportName": "SMOKE_TEST_SIMPLES_005_ACCESSOPS",
+  "generatedAt": "2026-04-01T17:35:07.166Z",
+  "compiledAt": "2026-04-01T17:35:07.166Z",
+  "source": "smoke_test_accessops.jrxml",
+  "reportTopology": {
+    "type": "SIMPLE",
+    "masterFile": "smoke_test_accessops.jrxml",
+    "detailFiles": [],
+    "relationKeys": [],
+    "parameterBindings": {}
+  },
+  "outputs": {
+    "jrxml": "smoke_test_accessops.jrxml",
+    "jasper": "smoke_test_accessops.jasper",
+    "pdf": "smoke_test_accessops.pdf",
+    "log": "smoke_test_accessops.log"
+  },
+  "checksums": {
+    "jrxml": "486d9b4c41aa6be42021309b21b19265180edd8241a57abe6e8dd64e8de88fbd",
+    "jasper": "5778cc53d713e47f703600307504498626a92067c7124c72ac3cc1a63e12bc0b",
+    "pdf": "5d986a3f66e50cf64fb601ebbdfbdbf1a01bf22bdadfe62ca19cd5ac70bd4bc0"
+  },
+  "jrxml": {
+    "file": "smoke_test_accessops.jrxml",
+    "hash": "486d9b4c41aa6be42021309b21b19265180edd8241a57abe6e8dd64e8de88fbd"
+  },
+  "jasper": {
+    "file": "smoke_test_accessops.jasper",
+    "hash": "5778cc53d713e47f703600307504498626a92067c7124c72ac3cc1a63e12bc0b",
+    "size": 23135,
+    "version": "JasperReports 6.2.0"
+  },
+  "pdf": {
+    "file": "smoke_test_accessops.pdf",
+    "size": 1590,
+    "hasData": true
+  },
+  "styleSource": {
+    "type": "nativa",
+    "path": null,
+    "sha256": null,
+    "confidence": null,
+    "fallbackApplied": false,
+    "appliedAt": "2026-04-01T17:35:07.218Z"
+  },
+  "dataSource": {
+    "view": null,
+    "fields": [],
+    "filters": []
+  },
+  "validation": {
+    "xmlValid": true,
+    "sqlValid": true,
+    "contaminationCheck": "skipped",
+    "typeConsistency": "passed"
+  },
+  "diagnostics": {
+    "mode": "SIMPLE",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/SMOKE_TEST_SIMPLES_005",
+    "emptyDataRisk": {
+      "hasPdf": true,
+      "pdfSizeBytes": 1590,
+      "possibleEmptyData": false,
+      "severity": "info",
+      "message": "PDF size looks healthy (1590 bytes)."
+    },
+    "troubleshootingHints": [
+      "Se PDF vier pequeno, valide filtros e retorno da view.",
+      "Se houver erro de tipo, alinhe <field class> com rules/views.json.",
+      "Use o .log para rastrear em qual etapa (validate/compile/pdf) ocorreu falha."
+    ]
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

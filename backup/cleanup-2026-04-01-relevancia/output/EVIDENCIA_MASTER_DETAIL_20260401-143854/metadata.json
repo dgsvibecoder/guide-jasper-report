@@ -1,0 +1,56 @@
+{
+  "reportName": "SMOKE_MASTER_001",
+  "generatedAt": "2026-04-01T17:39:03.344Z",
+  "format": "MASTER_DETAIL",
+  "reportTopology": {
+    "type": "MASTER_DETAIL",
+    "masterFile": "master.jrxml",
+    "detailFiles": [
+      "detail.jrxml"
+    ],
+    "relationKeys": [
+      "accessops_medicalEvents"
+    ],
+    "parameterBindings": {
+      "SUBREPORT_DETAIL_PATH": "detail.jasper"
+    }
+  },
+  "outputs": {
+    "masterJrxml": "master.jrxml",
+    "masterJasper": "master.jasper",
+    "detailJrxml": "detail.jrxml",
+    "detailJasper": "detail.jasper",
+    "pdf": "master.pdf",
+    "log": "master.log"
+  },
+  "checksums": {
+    "masterJrxml": "67e55c503816ec99cae0600679b776bba709f7b5c2cb2ecb9ce85bb766dbd5fe",
+    "masterJasper": "053103568a2c3d482ba603364907a5d9a1af2551fe1d4fee26ba806874a14497",
+    "detailJrxml": "145f70c524b554704bafc5a9edb10e843d2b75288c2b16608abe08662fb5acae",
+    "detailJasper": "bb5e9f516ac72255859eaf06c7c5c480145d33a95a48e7f9d209e9c82ded55ed",
+    "pdf": "5c97464a21490f67a550c14e169a3c65eb8e6e66c076139f211115c90cc03b31"
+  },
+  "validation": {
+    "masterXmlValid": true,
+    "detailXmlValid": true,
+    "semanticValidation": "passed",
+    "relationshipKey": "accessops_medicalEvents"
+  },
+  "diagnostics": {
+    "mode": "MASTER_DETAIL",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/EVIDENCIA_MASTER_DETAIL_20260401-143854",
+    "emptyDataRisk": {
+      "hasPdf": true,
+      "pdfSizeBytes": 918,
+      "possibleEmptyData": true,
+      "severity": "warning",
+      "message": "PDF size is very small (918 bytes). Possible empty dataset or mapping issue."
+    },
+    "troubleshootingHints": [
+      "Se o detalhe estiver vazio, valide relation key e parâmetro subreport.",
+      "Se PDF vier muito pequeno, revise filtros de data e classes de <field>.",
+      "Use master.log para identificar a etapa que falhou no pipeline 2-stage."
+    ]
+  },
+  "note": "Master/Detail report compiled with 2-stage pipeline (Fase 4)."
+}

@@ -8,17 +8,7 @@
     "compile": "node compile.js",
     "test": "node test.js",
     "generate-pdf": "node generate-pdf.js",
-    "build": "npm run validate && npm run compile && npm run generate-pdf",
-    "phase1:extract-style": "node extract-style-blueprint-phase1.js",
-    "phase1:apply-style": "node apply-style-blueprint-phase1.js",
-    "phase1:run": "node phase1-legacy-pdf-style.js",
-    "phase2:extract-style": "node extract-style-blueprint-phase2.js",
-    "phase2:apply-style": "node apply-style-blueprint-phase2.js",
-    "phase2:run": "node phase2-legacy-pdf-style.js",
-    "phase3:extract-style": "node extract-style-blueprint-phase3.js",
-    "phase3:apply-style": "node apply-style-blueprint-phase3.js",
-    "phase3:benchmark": "node visual-benchmark.js",
-    "phase3:run": "node phase3-legacy-pdf-style.js"
+    "build": "npm run validate && npm run compile && npm run generate-pdf"
   },
   "dependencies": {
     "xml2js": "^0.6.2",

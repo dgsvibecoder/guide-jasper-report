@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="SMOKE_TEST_SIMPLES_002" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40">
+	<parameter name="dataInicio" class="java.util.Date">
+		<defaultValueExpression><![CDATA[java.sql.Date.valueOf("2026-01-01")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dataFim" class="java.util.Date">
+		<defaultValueExpression><![CDATA[java.sql.Date.valueOf("2026-12-31")]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[
+			SELECT data, item_nome, valor_total 
+			FROM view_vendas_diarias
+			WHERE 1=1
+			AND data >= $P{dataInicio}
+			AND data <= $P{dataFim}
+			ORDER BY data DESC
+		]]>
+	</queryString>
+	<field name="data" class="java.sql.Date"/>
+	<field name="item_nome" class="java.lang.String"/>
+	<field name="valor_total" class="java.math.BigDecimal"/>
+	<title>
+		<band height="40">
+			<staticText>
+				<reportElement x="0" y="0" width="515" height="40"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SMOKE TEST 002 - Relatório com Filtros]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20">
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20"/>
+				<box><topPen lineWidth="1.0"/><leftPen lineWidth="1.0"/><bottomPen lineWidth="1.0"/><rightPen lineWidth="1.0"/></box>
+				<textElement textAlignment="Center"><font fontName="DejaVu Sans" size="9" isBold="true"/></textElement>
+				<text><![CDATA[Data]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="0" width="250" height="20"/>
+				<box><topPen lineWidth="1.0"/><leftPen lineWidth="1.0"/><bottomPen lineWidth="1.0"/><rightPen lineWidth="1.0"/></box>
+				<textElement textAlignment="Center"><font fontName="DejaVu Sans" size="9" isBold="true"/></textElement>
+				<text><![CDATA[Item]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="350" y="0" width="165" height="20"/>
+				<box><topPen lineWidth="1.0"/><leftPen lineWidth="1.0"/><bottomPen lineWidth="1.0"/><rightPen lineWidth="1.0"/></box>
+				<textElement textAlignment="Center"><font fontName="DejaVu Sans" size="9" isBold="true"/></textElement>
+				<text><![CDATA[Valor]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18">
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="0" y="0" width="100" height="18"/>
+				<box><topPen lineWidth="0.5"/><leftPen lineWidth="0.5"/><bottomPen lineWidth="0.5"/><rightPen lineWidth="0.5"/></box>
+				<textElement textAlignment="Center"><font fontName="DejaVu Sans" size="8"/></textElement>
+				<textFieldExpression><![CDATA[$F{data}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="0" width="250" height="18"/>
+				<box><topPen lineWidth="0.5"/><leftPen lineWidth="0.5"/><bottomPen lineWidth="0.5"/><rightPen lineWidth="0.5"/></box>
+				<textElement><font fontName="DejaVu Sans" size="8"/></textElement>
+				<textFieldExpression><![CDATA[$F{item_nome}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="350" y="0" width="165" height="18"/>
+				<box><topPen lineWidth="0.5"/><leftPen lineWidth="0.5"/><bottomPen lineWidth="0.5"/><rightPen lineWidth="0.5"/></box>
+				<textElement textAlignment="Right"><font fontName="DejaVu Sans" size="8"/></textElement>
+				<textFieldExpression><![CDATA[$F{valor_total}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="25">
+			<textField pattern="Página 'de' 1">
+				<reportElement x="450" y="5" width="65" height="15"/>
+				<textElement textAlignment="Right"><font fontName="DejaVu Sans" size="7"/></textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -139,6 +139,32 @@ Se PDF estiver muito pequeno ou visualmente vazio, revisar imediatamente:
 2. Filtros de data muito restritivos
 3. Filtro opcional com cast inadequado (ex.: `varchar = integer`)
 
+### 4.3️⃣ Master/Detail - Pipeline Obrigatório
+
+Para relatórios `MASTER_DETAIL`, seguir obrigatoriamente:
+
+1. Validar `master.jrxml` e `detail.jrxml` com `validate.js`
+2. Compilar em 2 estágios via `compile.js --detail`
+3. Informar `--relationship` quando existir chave em `rules/views.json`
+4. Conferir `metadata.json.reportTopology` e `master.log`
+
+Comando padrão:
+
+```bash
+node scripts/compile.js output/{pasta}/master.jrxml \
+  --detail output/{pasta}/detail.jrxml \
+  --relationship {relationshipKey} \
+  --pdf
+```
+
+Saída mínima esperada:
+
+- `master.jasper`
+- `detail.jasper`
+- `master.pdf`
+- `master.log`
+- `metadata.json` com `reportTopology.type = MASTER_DETAIL`
+
 ### 5️⃣ FONTS & ESTILOS: DejaVu Sans Padrão
 
 Usar APENAS fontes que funcionam em PDF sem embeding:
@@ -302,6 +328,8 @@ Quando gerar JRXML, considere:
 2. **rules/views.json**: Campos válidos, tipos, agregações permitidas
 3. **prompts/relatorio-simples.prompt.md**: Template de input
 4. **skills/generate-jrxml.md**: Skill detalhada com exemplos
+5. **docs/QUICKSTART.md**: Trilha dupla (SIMPLE e MASTER_DETAIL)
+6. **docs/MASTER-DETAIL-QUICKSTART.md**: Guia operacional dedicado para master/detail
 
 ---
 
@@ -446,6 +474,9 @@ Veja `docs/JRXML-MODELO-ANTI-PATTERNS.md` para o que evitar.
 | PDF not rendering | Font issue | Trocar para DejaVu Sans |
 | Contaminação em `subDataset` / `datasetRun` | Modelo complex component herdado indevidamente | Remover bindings herdados e revalidar com `--check-model-contamination` |
 | Chart/Crosstab herdou dataset do modelo | Placeholders tratados como lógica de dados por engano | Manter apenas geometria visual; definir datasets no relatório novo |
+| `Subreport not found` ou detail não carrega | Caminho `detail.jasper` inválido | Compilar com `--detail` e confirmar arquivo na mesma pasta de output |
+| Detail vazio no PDF master/detail | Chave de relação não mapeada ou filtro excessivo | Revisar `subreportParameter`, `--relationship` e filtros do detail |
+| Mismatch de tipo na chave master/detail | Tipos diferentes entre views/JRXML | Alinhar tipos em `rules/views.json`, `<field class>` e parâmetros |
 
 ---
 
@@ -457,9 +488,10 @@ Quando usuário é novo, ofereça:
 2. **Explicação inline**: Comente cada seção do JRXML
 3. **Validação step-by-step**: Mostre output de `validate.js` e `compile.js`
 4. **Docs**: Referencie `docs/QUICKSTART.md`
+5. **Master/Detail**: Quando for formato MASTER_DETAIL, referencie `docs/MASTER-DETAIL-QUICKSTART.md`
 
 ---
 
-**Última Atualização:** 31 de Março de 2026 (Fase 5 - Placeholders Complexos)
-**Versão:** 1.3 (subreports/charts/crosstabs como visual-only + validação de dataset inheritance)  
+**Última Atualização:** 1 de Abril de 2026 (Fase 7 - documentação operacional master/detail)
+**Versão:** 1.4 (trilha dupla no quickstart + guia dedicado + troubleshooting master/detail)  
 **Responsável:** Deploy Team
