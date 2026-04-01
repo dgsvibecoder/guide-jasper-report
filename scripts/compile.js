@@ -291,6 +291,38 @@ async function compileMasterDetail(masterJrxmlPath, detailJrxmlPath, opts) {
 
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
 
+  // [FASE 4] Validation: Check for ERROR in master.log and validate artifacts
+  const logContent = fs.readFileSync(logPath, 'utf8');
+  if (logContent.includes('[M/D] ERROR')) {
+    console.error('ERROR compile.js: Master/Detail log contains ERROR messages. Check master.log for details.');
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Artifact inventory for MASTER_DETAIL mode
+  const requiredMasterDetailArtifacts = [masterJrxmlPath, detailJrxmlPath, masterJasperPath, detailJasperPath, logPath, metadataPath];
+  if (wantsPdf) requiredMasterDetailArtifacts.push(pdfPath);
+  
+  const missingMArtifacts = requiredMasterDetailArtifacts.filter((a) => !fs.existsSync(a));
+  if (missingMArtifacts.length > 0) {
+    console.error(`ERROR [M/D] missing artifacts: ${missingMArtifacts.map((a) => path.basename(a)).join(', ')}`);
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Metadata JSON structure check for MASTER_DETAIL
+  try {
+    const metadataContent = fs.readFileSync(metadataPath, 'utf8');
+    const metadataObj = JSON.parse(metadataContent);
+    if (metadataObj.reportTopology?.type !== 'MASTER_DETAIL') {
+      throw new Error('metadata: expected reportTopology.type = MASTER_DETAIL');
+    }
+    if (!metadataObj.validation || !metadataObj.diagnostics) {
+      throw new Error('metadata: missing validation or diagnostics section');
+    }
+  } catch (err) {
+    console.error(`ERROR [M/D] metadata validation failed: ${err.message}`);
+    process.exit(1);
+  }
+
   console.log(`OK [M/D] Compiled detail : ${detailJasperPath}`);
   console.log(`OK [M/D] Compiled master : ${masterJasperPath}`);
   if (pdfPath) console.log(`OK [M/D] Generated PDF   : ${pdfPath}`);
@@ -365,6 +397,15 @@ async function main() {
      const absoluteJasperPath = path.resolve(jasperPath);
      const absolutePdfPath = path.resolve(pdfPath);
      runCommand('java', ['-jar', runnerJar, 'pdf-with-data', absoluteJasperPath, absolutePdfPath, dbUrl, dbUser, dbPassword], outputDir);
+     
+     // [FASE 4] Validation: Check PDF size immediately after generation
+     if (fs.existsSync(pdfPath)) {
+       const pdfSize = fs.statSync(pdfPath).size;
+       if (pdfSize < 1024) {
+         console.warn(`WARN compile.js: PDF size is very small (${pdfSize} bytes). Possible empty dataset or type mismatch.`);
+         console.warn('WARN Tips: Check filter ranges, validate <field class> matches rules/views.json types.');
+       }
+     }
   }
 
   const logLines = [];
@@ -493,6 +534,38 @@ async function main() {
   };
 
   fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+
+  // [FASE 4] Validation: Check for ERROR in log and validate artifacts
+  const logContent = fs.readFileSync(logPath, 'utf8');
+  if (logContent.includes('ERROR') && !logContent.includes('[M/D]')) {
+    console.error('ERROR compile.js: Log file contains ERROR messages. Check log file for details.');
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Artifact inventory for SIMPLE mode
+  const requiredArtifacts = [jrxmlPath, jasperPath, logPath, metadataPath];
+  if (wantsPdf) requiredArtifacts.push(pdfPath);
+  
+  const missingArtifacts = requiredArtifacts.filter((a) => !fs.existsSync(a));
+  if (missingArtifacts.length > 0) {
+    console.error(`ERROR missing artifacts: ${missingArtifacts.map((a) => path.basename(a)).join(', ')}`);
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Metadata JSON structure check
+  try {
+    const metadataContent = fs.readFileSync(metadataPath, 'utf8');
+    const metadataObj = JSON.parse(metadataContent);
+    if (!metadataObj.reportTopology || !metadataObj.reportTopology.type) {
+      throw new Error('metadata: missing reportTopology.type');
+    }
+    if (!metadataObj.validation || !metadataObj.diagnostics) {
+      throw new Error('metadata: missing validation or diagnostics section');
+    }
+  } catch (err) {
+    console.error(`ERROR metadata validation failed: ${err.message}`);
+    process.exit(1);
+  }
 
   console.log(`OK Generated ${jasperPath}`);
   if (wantsPdf) console.log(`OK Generated ${pdfPath}`);

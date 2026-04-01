@@ -7,6 +7,21 @@ cole a seção **PROMPT PARA COPILOT** na Copilot chat.
 
 ---
 
+## ✅ CHECKLIST PRÉ-PREENCHIMENTO (Validação Obrigatória)
+
+**Antes de submeter, verifique:**
+
+- [ ] Nome único, sem espaços, **UPPERCASE_WITH_UNDERSCORES**
+- [ ] View escolhida existe em `rules/views.json`? (copiar nome exatamente como definido)
+- [ ] Campos solicitados existem em `validFields` da view? (validar cada um)
+- [ ] Filtros têm tipos válidos? (DATE, INT, STRING, DECIMAL)
+- [ ] Tipo do filtro confere com tipo do campo da view? (STRING ⟷ VARCHAR, INT ⟷ INT, DATE ⟷ DATE)
+- [ ] Se usa modelo JRXML, arquivo existe em `/tmp` e foi validado (confidence >= 0.65)?
+
+**❌ Se algum check falhar:** Corrija o input antes de enviar ao Copilot. Não prossiga.
+
+---
+
 ## 📝 PASSO 1: Informações Básicas
 
 ```

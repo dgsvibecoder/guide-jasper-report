@@ -46,6 +46,24 @@ Toda geração deve seguir esta ordem, sem pular etapas:
 
 Se qualquer etapa falhar, NÃO seguir adiante. Corrigir primeiro e repetir.
 
+### ⚠️ BLOQUEIOS GLOBAIS (OBRIGATÓRIO)
+
+**Estes arquivos JAMAIS podem ser alterados pelo usuário. PARAR e solicitar autorização se alguém tentar:**
+
+❌ **PROIBIDO EDITAR:**
+- `scripts/` (validação, compilação, geração)
+- `setup/` (configuração de ambiente)
+- `package.json`, `pom.xml` (dependências)
+- `.github/copilot-instructions.md` (este arquivo)
+- `JasperRunner.java`, `compile.js`, `validate.js` (scripts core)
+- **`rules/views.json`** (SEM autorização explícita)
+
+**Ação se usuário pedir:** Rejeitar com mensagem:
+```
+❌ Não posso alterar {arquivo}. Essa mudança requer autorização explícita.
+Escopo permitido: APENAS output/<nome>/*.jrxml
+```
+
 ### 1️⃣ GERAÇÃO JRXML: Sempre Parametrizado
 
 **REGRA**: Toda query SQL DEVE usar parâmetros `$P{xxx}` para filtros, NUNCA valores hardcoded.
@@ -171,6 +189,239 @@ Usar APENAS fontes que funcionam em PDF sem embeding:
 - `DejaVu Sans` (standard)
 - `DejaVu Serif` (alternativa)
 - **EVITAR**: Arial, Helvetica (podem não renderizar em PDF)
+
+---
+
+## 🔒 COMPATIBILIDADE JRXML COM JASPERREPORTS 6.2.0
+
+### Versão & Atributos Bloqueados
+
+**Versão:** Sempre 6.2.0 (sem exceção)  
+**Atributos MODERNOS PROIBIDOS** (versões posteriores):
+- ❌ `uuid` (versão 6.4+)
+- ❌ `kind` (versão 6.3+)
+- ❌ `splitType` (versão 6.3+)
+- ❌ Qualquer atributo com namespace `xmlns:` customizado
+
+**Validação automática:** `validate.js` falha se detectar esses atributos.
+
+### Estrutura Obrigatória
+
+**4 Bandas OBRIGATÓRIAS em SIMPLE:**
+```xml
+<title>...</title>
+<columnHeader>...</columnHeader>
+<detail>...</detail>
+<pageFooter>...</pageFooter>
+```
+
+**7 Bandas OBRIGATÓRIAS em MASTER_DETAIL:**
+```xml
+<!-- MASTER -->
+<title>...</title>
+<columnHeader>...</columnHeader>
+<detail>...</detail>
+<pageFooter>...</pageFooter>
+
+<!-- DETAIL (subreport) -->
+<columnHeader>...</columnHeader>
+<detail>...</detail>
+<pageFooter>...</pageFooter>
+```
+
+**Validação automática:** `validate.js` falha se qualquer banda obrigatória estiver faltando.
+
+### Fonts Garantidas (PDF Safe)
+
+**Permitidas:**
+- ✅ `DejaVu Sans` (recomendada)
+- ✅ `DejaVu Serif`
+- ✅ `DejaVu Sans Mono`
+
+**Proibidas:**
+- ❌ `Arial` (pode não renderizar em PDF)
+- ❌ `Helvetica` (pode não renderizar em PDF)
+- ❌ `Times New Roman` (pode causar problemas em PDF)
+- ❌ Qualquer font customizada sem embedding
+
+**Validação automática:** `validate.js` avisa se font não-padrão detectada.
+
+### Encoding & CDATA
+
+**Obrigatório:**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<queryString>
+  <![CDATA[
+    SELECT ... FROM ... WHERE ...
+  ]]>
+</queryString>
+```
+
+**Proibido:**
+- ❌ `encoding="ISO-8859-1"` ou outro (sempre UTF-8)
+- ❌ Query fora de `<![CDATA[...]]>` (quebra parse)
+- ❌ `SELECT *` (sempre explícito)
+
+**Validação automática:** `validate.js` falha se CDATA mal-formado ou SELECT * detectado.
+
+---
+
+## 📋 REGRAS DE MODO: SIMPLE vs MASTER_DETAIL
+
+### MODO SIMPLE (Padrão)
+
+**Use SIMPLE quando:**
+- ✅ 1 única view como fonte de dados
+- ✅ 1 única query (sem subreport)
+- ✅ Sem relação pai-filho
+
+**Características obrigatórias:**
+- query única em `<queryString>`
+- Sem elemento `<subreport>`
+- metadata.json.reportTopology.type = `SIMPLE`
+
+**Comando compilação:**
+```bash
+node scripts/compile.js output/{nome}/{nome}.jrxml --pdf
+```
+
+**Validação:** `validate.js` verifica:
+- ✓ View existe em rules/views.json
+- ✓ Todos campos existem em validFields
+- ✓ Tipos dos campos coincidem com tipos em rules/views.json
+- ✓ Nenhum `<subreport>` presente
+
+### MODO MASTER_DETAIL (Relacional)
+
+**Use MASTER_DETAIL quando:**
+- ✅ 2 views com relação pai-filho (1:N)
+- ✅ Relacionamento EXISTE em rules/views.json.relationships
+- ✅ Cardinalidade é obrigatoriamente 1:N
+
+**Características obrigatórias:**
+- master.jrxml com query principal
+- detail.jrxml com subreport (parameterizado por chave mestre)
+- Relacionamento declarado em rules/views.json.relationships com:
+  ```json
+  {
+    "masterView": "...",
+    "detailView": "...",
+    "relationship": {
+      "localKey": "...",
+      "foreignKey": "...",
+      "cardinality": "1:N"
+    }
+  }
+  ```
+- metadata.json.reportTopology.type = `MASTER_DETAIL`
+
+**Comando compilação:**
+```bash
+node scripts/compile.js output/{pasta}/master.jrxml \
+  --detail output/{pasta}/detail.jrxml \
+  --relationship {relationshipKey} \
+  --pdf
+```
+
+**Validação:** `validate.js` verifica:
+- ✓ masterView existe em rules/views.json
+- ✓ detailView existe em rules/views.json
+- ✓ Relacionamento existe em rules/views.json.relationships
+- ✓ Cardinalidade = "1:N" (jamais N:N ou 1:1)
+- ✓ localKey existe em masterView
+- ✓ foreignKey existe em detailView
+- ✓ Tipos de localKey e foreignKey coincidem (INT=INT, VARCHAR=VARCHAR)
+- ✓ detail.jrxml tem `<subreport>` com parameterização correta
+
+**Erro comum:** Tentar usar MASTER_DETAIL sem relacionamento em rules/views.json → FALHA obrigatória com mensagem clara.
+
+---
+
+## ✏️ REGRAS DE ALTERAÇÃO PÓS-CRIAÇÃO
+
+### Escopo Protegido
+
+**Permitido editar:**
+- ✅ APENAS `output/<nome>/<nome>.jrxml` (para SIMPLE)
+- ✅ APENAS `output/<nome>/master.jrxml` + `output/<nome>/detail.jrxml` (para MASTER_DETAIL)
+
+**PROIBIDO editar:**
+- ❌ Nenhum arquivo fora de `output/<nome>/`
+- ❌ Nenhum arquivo de setup, scripts, regras
+
+**Validação:** Verificar explicitamente antes de proceder que nenhum arquivo fora do escopo foi tocado.
+
+### Dois Tipos de Alteração
+
+#### Tipo 1: Alteração de REGRA (Dados/Filtros)
+
+**Quando mudar:** View, campos, filtros, agregações, SQL
+
+**Sim, pode:**
+- ✅ Adicionar/remover campos
+- ✅ Mudar view (se ainda existe em rules/views.json)
+- ✅ Adicionar/remover filtros
+- ✅ Mudar SQL (respeitando $P{...} syntax)
+- ✅ Mudar relacionamento (se novo existe em rules/views.json.relationships)
+
+**Não, com bloco obrigatório:**
+- ❌ Alterar tipos de campos sem validação em rules/views.json
+- ❌ Remover bandas obrigatórias
+- ❌ Usar atributos 6.3+ (uuid, kind, splitType)
+
+**Pipeline obrigatório:**
+```bash
+# 1. Editar output/<nome>/<nome>.jrxml
+# 2. Validar
+node scripts/validate.js output/<nome>/<nome>.jrxml
+# 3. Se sai exit code 0, compilar
+node scripts/compile.js output/<nome>/<nome>.jrxml --pdf
+# 4. Verificar PDF gerado (>1KB, sem ERROR no log)
+```
+
+#### Tipo 2: Alteração VISUAL (Layout/Fonts/Cores)
+
+**Quando mudar:** Layouts, cores, fonts, margens, dimensões
+
+**Sim, pode:**
+- ✅ Mudar cores de texto/background
+- ✅ Mudar fonts (APENAS DejaVu Sans/Serif)
+- ✅ Mudar tamanho de banda
+- ✅ Ajustar margens de página
+- ✅ Reorganizar posição de campos (x, y)
+
+**JAMAIS (bloco obrigatório):**
+- ❌ Alterar view ou nome da view
+- ❌ Remover/adicionar campos (`<field>`)
+- ❌ Mudar SQL (`<queryString>`)
+- ❌ Adicionar/remover parâmetros
+- ❌ Adicionar subreport (transforma SIMPLE em MASTER_DETAIL)
+
+**Pipeline obrigatório:**
+```bash
+# 1. Editar APENAS cores/fonts/layout em output/<nome>/<nome>.jrxml
+# 2. Validar (deve sair exit code 0 sem mudança de dados)
+node scripts/validate.js output/<nome>/<nome>.jrxml
+# 3. Compilar
+node scripts/compile.js output/<nome>/<nome>.jrxml --pdf
+# 4. Verificar PDF visualmente (layout correto, dados iguais)
+```
+
+### Checklist Pós-Alteração
+
+Antes de entregar relatório alterado, SEMPRE verificar:
+
+- [ ] Arquivo alterado está em `output/<nome>/` (correto)
+- [ ] Nenhum arquivo fora escopo foi editado
+- [ ] `validate.js` rodou com exit code 0
+- [ ] `compile.js --pdf` rodou sem ERROR no log
+- [ ] PDF foi gerado (>1KB)
+- [ ] Se era REGRA: dados fazem sentido (campos novos, filtros funcionam)
+- [ ] Se era VISUAL: layout está bonito, dados inalterados
+
+**Se qualquer check falhar:** PARAR e corrigir. NÃO entregar relatório com erro.
 
 ---
 
@@ -492,6 +743,26 @@ Quando usuário é novo, ofereça:
 
 ---
 
-**Última Atualização:** 1 de Abril de 2026 (Fase 7 - documentação operacional master/detail)
-**Versão:** 1.4 (trilha dupla no quickstart + guia dedicado + troubleshooting master/detail)  
-**Responsável:** Deploy Team
+## 🛡️ SUMÁRIO: CAMADAS DE PROTEÇÃO (FASE 1 DE GOVERNANÇA)
+
+Este arquivo (`copilot-instructions.md`) implementa **Camada 1 de Governança**: Instruções de Prompt
+
+| Camada | Localização | Função | Implementação |
+|--------|------------|--------|----------------|
+| **1** | ⬅️ Este arquivo | Bloqueios de prompt + regras de compatibilidade | ✅ IMPLEMENTADO (FASE 1) |
+| **2** | rules/views.json | Contrato obrigatório de dados (view, campos, tipos, relações) | ⏳ FASE 2 |
+| **3** | scripts/validate.js | Validação técnica de XML/SQL (exit code 1 em erro) | ⏳ FASE 3 |
+| **4** | scripts/compile.js | Bloqueio final (PDF vazio, log ERROR, artefatos faltando) | ⏳ FASE 4 |
+| **5** | prompts/ + skills/ | Estrutura de fluxo de input (checklists pré-preenchimento) | ⏳ FASE 5 |
+
+**Objetivo da Camada 1 (ESTE ARQUIVO):**
+- ✅ Bloquears alterações a arquivos protegidos (scripts, setup, rules.json)
+- ✅ Enforçar compatibilidade JasperReports 6.2.0
+- ✅ Definir regras de modo (SIMPLE vs MASTER_DETAIL)
+- ✅ Proteger fluxo de alteração pós-criação (REGRA vs VISUAL)
+
+---
+
+**Última Atualização:** 1 de Abril de 2026 (Fase 1 - Implementação de Governança - Instructions)
+**Versão:** 1.5 (com governança em 4 seções: Bloqueios, Compatibilidade, Regras de Modo, Alteração Pós-Criação)  
+**Responsável:** Deploy Team + Engenharia de IA

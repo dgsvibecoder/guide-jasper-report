@@ -759,6 +759,7 @@
         "localKey": "idpaziente",
         "foreignKey": "paciente_id",
         "cardinality": "1:N",
+        "validationRequired": true,
         "joinType": "LEFT_OUTER_JOIN",
         "description": "Cada acesso ao PS pode ter múltiplos eventos de atendimento/procedimento"
       },
@@ -782,6 +783,7 @@
         "foreignKey": "vendedor_id",
         "groupByMaster": "vendedor_id",
         "cardinality": "1:N",
+        "validationRequired": true,
         "joinType": "INNER_JOIN",
         "description": "Agregação: resumo por vendedor com detalhe de cada venda"
       },
@@ -806,6 +808,7 @@
         "localKey": "idpaziente",
         "foreignKey": "paciente_id",
         "cardinality": "1:N",
+        "validationRequired": true,
         "joinType": "LEFT_OUTER_JOIN",
         "description": "Cada paciente cadastro pode ter múltiplos atendimentos"
       },

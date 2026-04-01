@@ -621,6 +621,25 @@ async function validateMasterDetail(masterJrxmlPath, detailJrxmlPath, rulesPath,
                 'in detail SQL WHERE clause. Ensure it is used as a filter condition.'
             );
           }
+
+          // [FASE 4] Validation 5: Master/Detail key type matching (INT=INT, VARCHAR=VARCHAR)
+          if (rules.views && localKey && foreignKey) {
+            const masterViewDef = rules.views[relDef.masterView];
+            const detailViewDef = rules.views[relDef.detailView];
+            
+            if (masterViewDef && detailViewDef) {
+              const masterKeyField = (masterViewDef.validFields || []).find((f) => f.name === localKey);
+              const detailKeyField = (detailViewDef.validFields || []).find((f) => f.name === foreignKey);
+              
+              if (masterKeyField && detailKeyField && masterKeyField.type !== detailKeyField.type) {
+                errors.push(
+                  `Relationship '${relationshipKey}': key type mismatch! ` +
+                    `Master '${localKey}' is ${masterKeyField.type} but detail '${foreignKey}' is ${detailKeyField.type}. ` +
+                    `Types must match exactly (INT=INT, VARCHAR=VARCHAR, etc.).`
+                );
+              }
+            }
+          }
         }
       }
     }
@@ -669,11 +688,23 @@ async function runValidation(jrxmlPath, rulesPath) {
 
   const reportName = root && root.$ && root.$.name ? root.$.name : path.basename(resolvedJrxmlPath, '.jrxml');
 
+  // [FASE 4] Validation 1: JasperReports 6.2.0 compatibility (no uuid, kind, splitType attributes)
+  if (root && root.$) {
+    if (root.$.uuid) errors.push('Attribute "uuid" is incompatible with JasperReports 6.2.0 (added in 6.4+).');
+    if (root.$.kind) errors.push('Attribute "kind" is incompatible with JasperReports 6.2.0 (added in 6.3+).');
+    if (root.$.splitType) errors.push('Attribute "splitType" is incompatible with JasperReports 6.2.0 (added in 6.3+).');
+  }
+
   const queryNode = root && root.queryString ? root.queryString[0] : null;
   const sql = findNodeValue(queryNode);
 
   if (!sql || !sql.trim()) {
     errors.push('queryString is empty.');
+  }
+
+  // [FASE 4] Validation 2: CDATA well-formed check
+  if (sql && !xmlContent.includes('<![CDATA[') && sql.includes('SELECT')) {
+    warnings.push('Query should be wrapped in CDATA: <![CDATA[...]]>');
   }
 
   if (/select\s+\*/i.test(sql)) {
@@ -693,6 +724,27 @@ async function runValidation(jrxmlPath, rulesPath) {
   referencedParams.forEach((p) => {
     if (!params.includes(p)) {
       errors.push(`Parameter referenced in SQL but not declared: ${p}`);
+    }
+  });
+
+  // [FASE 4] Validation 3: Hardcoded filter values detection
+  if (sql) {
+    const hardcodedDatePattern = /where\s+.+['"`]\d{4}-\d{2}-\d{2}['"`]/i;
+    if (hardcodedDatePattern.test(sql)) {
+      warnings.push('SQL WHERE clause contains a hardcoded date. Use $P{paramName} for filters.');
+    }
+    const hardcodedNumberPattern = /where\s+.+(?<![a-zA-Z0-9_{}])\d+(?![a-zA-Z0-9_{}]).+[^=1]/;
+    if (hardcodedNumberPattern.test(sql) && !/WHERE\s+1\s*=\s*1/i.test(sql)) {
+      warnings.push('SQL WHERE clause may contain hardcoded numbers. Verify all filters use $P{paramName}.');
+    }
+  }
+
+  // [FASE 4] Validation 4: Parameter declarations must match usage
+  parameterNodes.forEach((p) => {
+    const pName = p.$ && p.$.name ? p.$.name : null;
+    const pClass = p.$ && p.$.class ? p.$.class : null;
+    if (pName && !pClass) {
+      warnings.push(`Parameter '${pName}' declared without class attribute.`);
     }
   });
 

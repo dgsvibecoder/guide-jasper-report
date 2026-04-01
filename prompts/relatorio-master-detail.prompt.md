@@ -16,6 +16,22 @@ Preencha este template para gerar relatório em **FORMATO MASTER/DETAIL**
 
 ---
 
+## ✅ CHECKLIST PRÉ-PREENCHIMENTO (Validação Obrigatória)
+
+**Antes de submeter, verifique:**
+
+- [ ] View master existe em `rules/views.json`? (copiar nome exatamente como definido)
+- [ ] View detail existe em `rules/views.json`? (copiar nome exatamente como definido)
+- [ ] Relacionamento (masterView, detailView) existe em `rules/views.json.relationships`? (verificar campo obrigatório `"validationRequired": true`)
+- [ ] Cardinalidade do relacionamento é **1:N**? (nunca N:N ou 1:1 em MASTER_DETAIL)
+- [ ] Chave master (ex: vendedor_id) existe em AMBAS as views (master e detail)?
+- [ ] Tipos das chaves coincidem? (INT=INT, VARCHAR=VARCHAR, não misturar tipos diferentes)
+- [ ] Nome relatório único, sem espaços, **UPPERCASE_WITH_UNDERSCORES**
+
+**❌ Se algum check falhar:** Corrija o input antes de enviar ao Copilot. Não prossiga.
+
+---
+
 ## 📝 PASSO 1: Informações Básicas
 
 ```
