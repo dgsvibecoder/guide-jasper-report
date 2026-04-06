@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="PAZIENTE_ALLERGIA_DETAIL"
+  pageWidth="762" pageHeight="595"
+  orientation="Landscape"
+  columnWidth="762"
+  leftMargin="0" rightMargin="0"
+  topMargin="0" bottomMargin="0">
+
+  <parameter name="pacienteId" class="java.lang.String"/>
+
+  <queryString>
+    <![CDATA[
+      SELECT
+        idpaziente,
+        idallergia,
+        nomeallergia,
+        codmallergia,
+        tipoallergia,
+        datarilevazione,
+        note,
+        gravitareazione,
+        tiporeazione,
+        stato
+      FROM allergia
+      WHERE 1=1
+        AND idpaziente = $P{pacienteId}
+      ORDER BY datarilevazione DESC, idallergia
+    ]]>
+  </queryString>
+
+  <field name="idpaziente" class="java.lang.String"/>
+  <field name="idallergia" class="java.lang.String"/>
+  <field name="nomeallergia" class="java.lang.String"/>
+  <field name="codmallergia" class="java.lang.String"/>
+  <field name="tipoallergia" class="java.lang.String"/>
+  <field name="datarilevazione" class="java.sql.Date"/>
+  <field name="note" class="java.lang.String"/>
+  <field name="gravitareazione" class="java.lang.String"/>
+  <field name="tiporeazione" class="java.lang.String"/>
+  <field name="stato" class="java.lang.String"/>
+
+  <title>
+    <band height="16">
+      <rectangle>
+        <reportElement x="0" y="0" width="762" height="16" mode="Opaque" backcolor="#E0E7FF"/>
+      </rectangle>
+      <staticText>
+        <reportElement x="0" y="0" width="762" height="14"/>
+        <textElement>
+          <font size="10" isBold="true" fontName="DejaVu Sans"/>
+        </textElement>
+        <text><![CDATA[Alergias Registradas]]></text>
+      </staticText>
+    </band>
+  </title>
+
+  <columnHeader>
+    <band height="16">
+      <line>
+        <reportElement x="0" y="0" width="762" height="1"/>
+      </line>
+      <line>
+        <reportElement x="0" y="15" width="762" height="1"/>
+      </line>
+      <staticText>
+        <reportElement x="0" y="2" width="70" height="12"/>
+        <text><![CDATA[ID]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="70" y="2" width="120" height="12"/>
+        <text><![CDATA[Nome Alergia]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="190" y="2" width="90" height="12"/>
+        <text><![CDATA[Codigo]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="280" y="2" width="95" height="12"/>
+        <text><![CDATA[Tipo]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="375" y="2" width="80" height="12"/>
+        <text><![CDATA[Data]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="455" y="2" width="90" height="12"/>
+        <text><![CDATA[Gravidade]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="545" y="2" width="85" height="12"/>
+        <text><![CDATA[Reacao]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="630" y="2" width="45" height="12"/>
+        <text><![CDATA[Stato]]></text>
+      </staticText>
+      <staticText>
+        <reportElement x="675" y="2" width="87" height="12"/>
+        <text><![CDATA[Note]]></text>
+      </staticText>
+    </band>
+  </columnHeader>
+
+  <detail>
+    <band height="16">
+      <textField>
+        <reportElement x="0" y="2" width="70" height="12"/>
+        <textFieldExpression><![CDATA[$F{idallergia}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="70" y="2" width="120" height="12"/>
+        <textFieldExpression><![CDATA[$F{nomeallergia}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="190" y="2" width="90" height="12"/>
+        <textFieldExpression><![CDATA[$F{codmallergia}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="280" y="2" width="95" height="12"/>
+        <textFieldExpression><![CDATA[$F{tipoallergia}]]></textFieldExpression>
+      </textField>
+      <textField pattern="yyyy-MM-dd">
+        <reportElement x="375" y="2" width="80" height="12"/>
+        <textFieldExpression><![CDATA[$F{datarilevazione}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="455" y="2" width="90" height="12"/>
+        <textFieldExpression><![CDATA[$F{gravitareazione}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="545" y="2" width="85" height="12"/>
+        <textFieldExpression><![CDATA[$F{tiporeazione}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="630" y="2" width="45" height="12"/>
+        <textFieldExpression><![CDATA[$F{stato}]]></textFieldExpression>
+      </textField>
+      <textField isStretchWithOverflow="true">
+        <reportElement x="675" y="2" width="87" height="12"/>
+        <textFieldExpression><![CDATA[$F{note}]]></textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+
+  <pageFooter>
+    <band height="1">
+      <staticText>
+        <reportElement x="0" y="0" width="1" height="1"/>
+        <text><![CDATA[]]></text>
+      </staticText>
+    </band>
+  </pageFooter>
+
+</jasperReport>

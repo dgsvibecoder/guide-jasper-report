@@ -1,0 +1,56 @@
+{
+  "reportName": "PAZIENTE_ALLERGIA_MASTER",
+  "generatedAt": "2026-04-01T20:22:03.083Z",
+  "format": "MASTER_DETAIL",
+  "reportTopology": {
+    "type": "MASTER_DETAIL",
+    "masterFile": "master.jrxml",
+    "detailFiles": [
+      "detail.jrxml"
+    ],
+    "relationKeys": [
+      "paziente_allergia"
+    ],
+    "parameterBindings": {
+      "SUBREPORT_DETAIL_PATH": "detail.jasper"
+    }
+  },
+  "outputs": {
+    "masterJrxml": "master.jrxml",
+    "masterJasper": "master.jasper",
+    "detailJrxml": "detail.jrxml",
+    "detailJasper": "detail.jasper",
+    "pdf": "master.pdf",
+    "log": "master.log"
+  },
+  "checksums": {
+    "masterJrxml": "dae91df3a5688e4275cae10dc7ed158932f77443f5c5f7371346caa56806f440",
+    "masterJasper": "d61bce827577c38b3e8498a1a9eb796054aa469f1d05cfef97f7e9605b4d6b45",
+    "detailJrxml": "af4f94d8ea94d3ae90f87274a4f87ad57956193a8d5c468d16765b306ea0a146",
+    "detailJasper": "f5373214e1e90f7dd7f104332271d2cc9737d30a76dcb82611c486aaecf11c89",
+    "pdf": "9f5c4ba79b333868bc62bdce9e67dfbd9d3d9eecc8b4a6a47a8de0a38a3d6b69"
+  },
+  "validation": {
+    "masterXmlValid": true,
+    "detailXmlValid": true,
+    "semanticValidation": "passed",
+    "relationshipKey": "paziente_allergia"
+  },
+  "diagnostics": {
+    "mode": "MASTER_DETAIL",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/PAZIENTE_ALLERGIA",
+    "emptyDataRisk": {
+      "hasPdf": true,
+      "pdfSizeBytes": 4262,
+      "possibleEmptyData": false,
+      "severity": "info",
+      "message": "PDF size looks healthy (4262 bytes)."
+    },
+    "troubleshootingHints": [
+      "Se o detalhe estiver vazio, valide relation key e parâmetro subreport.",
+      "Se PDF vier muito pequeno, revise filtros de data e classes de <field>.",
+      "Use master.log para identificar a etapa que falhou no pipeline 2-stage."
+    ]
+  },
+  "note": "Master/Detail report compiled with 2-stage pipeline (Fase 4)."
+}

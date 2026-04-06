@@ -551,6 +551,16 @@
           "example": "Mario"
         },
         {
+          "name": "personagiuridica",
+          "type": "VARCHAR(20)",
+          "label": "Pessoa Jurídica",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "N"
+        },
+        {
           "name": "sesso",
           "type": "VARCHAR(10)",
           "label": "Sexo",
@@ -559,6 +569,26 @@
           "filterable": true,
           "aggregatable": false,
           "example": "M"
+        },
+        {
+          "name": "idcomunenascita",
+          "type": "VARCHAR(50)",
+          "label": "ID Comune Nascimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "MI001"
+        },
+        {
+          "name": "nomecomunenascita",
+          "type": "VARCHAR(255)",
+          "label": "Comune Nascimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Milano"
         },
         {
           "name": "datanascita",
@@ -670,6 +700,123 @@
           "filterable": true,
           "aggregatable": false,
           "example": "2026-03-31 10:15:30"
+        }
+      ]
+    },
+
+    "allergia": {
+      "displayName": "Alergias de Pacientes",
+      "description": "Registro de alergias associadas ao paciente",
+      "schema": "hero",
+      "source": "Tabela/View hero.allergia",
+      "refreshFrequency": "Contínua",
+      "lastValidated": "2026-04-01",
+      "suggestedRoles": {
+        "masterCandidate": false,
+        "detailCandidate": true,
+        "preferredRole": "detail",
+        "description": "Usar como detail em relação com paziente via idpaziente"
+      },
+      "validFields": [
+        {
+          "name": "idpaziente",
+          "type": "VARCHAR(50)",
+          "label": "ID Paciente",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "P1001"
+        },
+        {
+          "name": "idallergia",
+          "type": "VARCHAR(50)",
+          "label": "ID Alergia",
+          "isKey": true,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "A001"
+        },
+        {
+          "name": "nomeallergia",
+          "type": "VARCHAR(255)",
+          "label": "Nome Alergia",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Penicilina"
+        },
+        {
+          "name": "codmallergia",
+          "type": "VARCHAR(50)",
+          "label": "Código Alergia",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "ALG-001"
+        },
+        {
+          "name": "tipoallergia",
+          "type": "VARCHAR(100)",
+          "label": "Tipo Alergia",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Medicamento"
+        },
+        {
+          "name": "datarilevazione",
+          "type": "DATE",
+          "label": "Data de Relevazione",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-10"
+        },
+        {
+          "name": "note",
+          "type": "VARCHAR(500)",
+          "label": "Notas",
+          "isKey": false,
+          "sortable": false,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Reação após uso contínuo"
+        },
+        {
+          "name": "gravitareazione",
+          "type": "VARCHAR(100)",
+          "label": "Gravidade da Reação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Moderada"
+        },
+        {
+          "name": "tiporeazione",
+          "type": "VARCHAR(100)",
+          "label": "Tipo de Reação",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "Cutânea"
+        },
+        {
+          "name": "stato",
+          "type": "VARCHAR(50)",
+          "label": "Estado",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "ATIVA"
         }
       ]
     },
@@ -821,6 +968,29 @@
       },
       "contextMaster": "Dados cadastrais do paciente",
       "contextDetail": "Histórico de atendimentos do paciente"
+    },
+
+    "paziente_allergia": {
+      "name": "Pacientes com Alergias",
+      "masterView": "paziente",
+      "detailView": "allergia",
+      "relationship": {
+        "localKey": "idpaziente",
+        "foreignKey": "idpaziente",
+        "cardinality": "1:N",
+        "validationRequired": true,
+        "joinType": "LEFT_OUTER_JOIN",
+        "description": "Cada paciente pode ter múltiplas alergias registradas"
+      },
+      "validationRules": {
+        "masterKeysRequired": ["idpaziente", "nome", "cognome"],
+        "detailKeysRequired": ["idpaziente", "idallergia"],
+        "parameterBinding": {
+          "pacienteId": "idpaziente"
+        }
+      },
+      "contextMaster": "Cadastro do paciente",
+      "contextDetail": "Alergias registradas do paciente"
     }
   },
 
