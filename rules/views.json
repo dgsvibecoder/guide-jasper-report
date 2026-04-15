@@ -3,7 +3,7 @@
   "description": "Definição de views disponíveis e campos válidos para geração de relatórios",
   "lastUpdated": "2026-03-30",
   "jasperVersion": "6.2.0",
-  
+
   "datasource": {
     "driver": "org.postgresql.Driver",
     "defaultType": "PostgreSQL",
@@ -24,7 +24,7 @@
         "preferredRole": "master",
         "description": "Pode ser master (agrupado por vendedor) ou detail (itens individuais). Suporta agregação por vendedor com detalhe de itens diários"
       },
-      
+
       "validFields": [
         {
           "name": "data",
@@ -87,7 +87,7 @@
           "filterable": false,
           "aggregatable": true,
           "aggregations": ["SUM", "AVG"],
-          "example": 9999.00
+          "example": 9999.0
         },
         {
           "name": "vendedor_nome",
@@ -257,7 +257,7 @@
           "filterable": false,
           "aggregatable": true,
           "aggregations": ["SUM", "AVG"],
-          "example": 150.00
+          "example": 150.0
         },
         {
           "name": "tempo_duracao_minutos",
@@ -408,7 +408,7 @@
           "filterable": true,
           "aggregatable": true,
           "aggregations": ["SUM", "AVG"],
-          "example": 36.50
+          "example": 36.5
         },
         {
           "name": "nomeurgenzaaccettazione",
@@ -834,7 +834,7 @@
         "preferredRole": "master",
         "description": "Pré-agregada por mês, ideal como master para comparações temporais. Não suporta detail (já é agregação)"
       },
-      
+
       "validFields": [
         {
           "name": "ano_mes",
@@ -856,7 +856,7 @@
           "filterable": false,
           "aggregatable": true,
           "aggregations": ["SUM"],
-          "example": 100000.00
+          "example": 100000.0
         },
         {
           "name": "quantidade_vendas",
@@ -877,7 +877,7 @@
           "sortable": true,
           "filterable": false,
           "aggregatable": false,
-          "example": 200.00
+          "example": 200.0
         },
         {
           "name": "quantidade_vendedores",
@@ -897,7 +897,7 @@
     "description": "Definição de relacionamentos master/detail permitidos entre views",
     "version": "2.0",
     "lastUpdated": "2026-04-01",
-    
+
     "accessops_medicalEvents": {
       "name": "Acessos com Eventos Médicos",
       "masterView": "accessops",
@@ -920,7 +920,7 @@
       "contextMaster": "Registro de entrada do paciente no Posto de Saúde",
       "contextDetail": "Procedimentos e atendimentos realizados"
     },
-    
+
     "vendedores_vendas": {
       "name": "Vendedor com Itens de Venda",
       "masterView": "view_vendas_diarias",
@@ -946,7 +946,7 @@
       "contextMaster": "Totalizador de vendas por vendedor",
       "contextDetail": "Itens vendidos por dia/vendedor"
     },
-    
+
     "pacientes_triagem": {
       "name": "Pacientes Atendidos com Triagem",
       "masterView": "paziente",
@@ -991,6 +991,40 @@
       },
       "contextMaster": "Cadastro do paciente",
       "contextDetail": "Alergias registradas do paciente"
+    },
+
+    "paciente_allergia_accessops": {
+      "name": "Pacientes com Alergias e Acessos (2 níveis)",
+      "masterView": "paziente",
+      "detailView": "allergia",
+      "detail2View": "accessops",
+      "relationship": {
+        "localKey": "idpaziente",
+        "foreignKey": "idpaziente",
+        "cardinality": "1:N",
+        "validationRequired": true,
+        "joinType": "LEFT_OUTER_JOIN",
+        "description": "Cada paciente pode ter múltiplas alergias registradas"
+      },
+      "relationship2": {
+        "localKey": "idpaziente",
+        "foreignKey": "idpaziente",
+        "cardinality": "1:N",
+        "validationRequired": true,
+        "joinType": "LEFT_OUTER_JOIN",
+        "description": "Para cada alergia, exibir os acessos ao posto de saúde do mesmo paciente"
+      },
+      "validationRules": {
+        "masterKeysRequired": ["idpaziente", "nome", "cognome"],
+        "detailKeysRequired": ["idpaziente", "idallergia"],
+        "detail2KeysRequired": ["idpaziente", "idaccesso"],
+        "parameterBinding": {
+          "pacienteId": "idpaziente"
+        }
+      },
+      "contextMaster": "Cadastro do paciente",
+      "contextDetail": "Alergias registradas do paciente",
+      "contextDetail2": "Acessos ao posto de saúde do mesmo paciente"
     }
   },
 
@@ -1034,9 +1068,9 @@
 
   "examples": {
     "simpleQuery": "SELECT data, item_nome, valor_total FROM view_vendas_diarias WHERE 1=1 AND data >= $P{dataInicio} AND data <= $P{dataFim} ORDER BY data DESC",
-    
+
     "aggregateQuery": "SELECT vendedor_nome, SUM(valor_total) as total_vendas, COUNT(*) as quantidade FROM view_vendas_diarias WHERE 1=1 AND data >= $P{dataInicio} AND data <= $P{dataFim} GROUP BY vendedor_nome ORDER BY total_vendas DESC",
-    
+
     "filteredQuery": "SELECT paciente_nome, data_atendimento, procedimento_descricao, valor_procedimento FROM view_pacientes_atendidos WHERE 1=1 AND profissional_id = $P{profissionalId} AND data_atendimento >= $P{dataInicio} ORDER BY data_atendimento DESC"
   },
 

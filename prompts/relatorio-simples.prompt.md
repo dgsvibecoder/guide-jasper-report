@@ -2,7 +2,7 @@
 
 ## ℹ️ Instruções de Uso
 
-Preencha este template com os detalhes do seu relatório. Após preenchimento, 
+Preencha este template com os detalhes do seu relatório. Após preenchimento,
 cole a seção **PROMPT PARA COPILOT** na Copilot chat.
 
 ---
@@ -22,7 +22,25 @@ cole a seção **PROMPT PARA COPILOT** na Copilot chat.
 
 ---
 
-## 📝 PASSO 1: Informações Básicas
+## � PASSO 0: Declaração de Campos na View
+
+**Obrigatório se a view ainda não existe em `rules/views.json`.**
+
+Se a view que você vai usar ainda não tem campos registrados em `rules/views.json`,
+liste aqui cada campo com nome, descrição e tipo antes de preencher o restante.
+A IA atualizará o `rules/views.json` como **PRIMEIRA ação**, antes de gerar o JRXML.
+
+```
+View: [nome_da_view]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+```
+
+Se a view já existe com todos os campos necessários em `rules/views.json` → deixe em branco.
+
+---
+
+## �📝 PASSO 1: Informações Básicas
 
 ```
 Nome do Relatório: [Exemplo: VENDAS_DIARIAS]
@@ -36,13 +54,14 @@ Descrição: [Exemplo: Relatório de vendas do período, agrupado por item e ven
 Descreva o contexto e motivação do relatório para ambito, destinatário e uso esperado.
 
 **Exemplos de Cenário:**
+
 - "Acompanhamento diário de vendas para equipe comercial validar performance"
 - "Relatório executivo de pacientes atendidos em clínica para diretoria"
 - "Análise semanal de receita agregada por mês para controller financeiro"
 
 ```
 Cenário (Contexto + Por Quê):
-[Exemplo: Acompanhamento diário de vendas para equipe comercial, com foco em item mais vendido por vendedor. 
+[Exemplo: Acompanhamento diário de vendas para equipe comercial, com foco em item mais vendido por vendedor.
 Uso: Gerente acompanha performance em tempo real. Público: Vendedores + Gerência.]
 ```
 
@@ -53,6 +72,7 @@ Uso: Gerente acompanha performance em tempo real. Público: Vendedores + Gerênc
 Escolha a view do banco de dados onde os dados serão buscados.
 
 **Views disponíveis em rules/views.json:**
+
 - `view_vendas_diarias` - Vendas agregadas por item, quantidade e valor
 - `view_pacientes_atendidos` - Pacientes atendidos em clínica
 - `accessops` - Registro de Acesso PS
@@ -70,12 +90,14 @@ Defina o campo ou combinação de campos que servirá como dimensão/agrupamento
 Isso ajuda a definir a estrutura e ordem dos dados.
 
 **Exemplos:**
+
 - `data` → Relatório agrupado por dia
 - `vendedor_nome` → Relatório agrupado por vendedor
 - `categoria` → Relatório agrupado por categoria
 - `data, vendedor_nome` → Agrupado primeiro por data, depois por vendedor
 
 **Regra:**
+
 - Campo DEVE existir na view escolhida
 - Use para definir granularidade do relatório (que é a linha principal?)
 - Se não fizer sentido agrupar, use campo de identidade ou deixe vazio (todos os registros)
@@ -95,6 +117,7 @@ Justificativa (por quê este agrupamento?):
 Liste os campos que devem aparecer no relatório.
 
 **Para view_vendas_diarias, campos disponíveis:**
+
 - data (Data da Venda)
 - item_nome (Nome do Item)
 - item_codigo (Código)
@@ -117,12 +140,14 @@ Campos Desejados (separe por vírgula):
 Defina quais filtros o usuário pode aplicar ao gerar o relatório.
 
 **Tipos de filtro disponíveis:**
+
 - `DATE` - Data (ex: 2026-03-30)
 - `INT` - Número inteiro (ex: 1001)
 - `STRING` - Texto (ex: "João")
 - `DECIMAL` - Número com casa decimal (ex: 99.99)
 
 **Regra anti-erro importante (obrigatória):**
+
 - Se o campo da view for `VARCHAR`, o filtro deve ser `STRING` (nunca `INT`)
 - Para filtros opcionais, use default `null`
 
@@ -173,6 +198,22 @@ Rodapé: Página X de Y, Total de registros, Data/Hora
 
 ---
 
+## 🎨 PASSO 7.2: Especificação de Bandas (Opcional — reduz retrabalho)
+
+Preencha para cada banda que deve ser gerada. Quanto mais detalhado, menos
+ajustes serão necessários após a geração. Deixe em branco as bandas não utilizadas.
+
+```
+Especificação de Bandas:
+  pageHeader    : [Título + data/hora + <line> na parte inferior | Impresso em cada página: Sim/Não]
+  columnHeader  : [Cabeçalho em negrito + <line> na parte inferior]
+  groupHeader   : [Texto "Label: $F{campo}" | Altura do objeto textField: 16px]
+  groupFooter   : [<line> no topo + contador de registros do grupo]
+  pageFooter    : [<line> no topo + "Total de Registros: $V{REPORT_COUNT}" + "Página $V{PAGE_NUMBER} de $V{PAGE_COUNT}"]
+```
+
+---
+
 ## 🎨 PASSO 7.1: NOVO - Modelo Visual JRXML (Opcional)
 
 Se você tem um arquivo modelo `.jrxml` em `/tmp` para reutilizar design visual:
@@ -192,6 +233,7 @@ Descrição: [Exemplo: Modelo com logo empresa, header/footer padronizado]
 ```
 
 **Características de um Modelo Seguro:**
+
 - Tem 0 `<parameter>` declarations
 - Tem 0 `<field>` declarations
 - Tem query dummy: `<queryString><![CDATA[SELECT 1]]></queryString>`
@@ -204,7 +246,7 @@ Descrição: [Exemplo: Modelo com logo empresa, header/footer padronizado]
 
 ## 📄 PASSO 8: Arquivo Modelo Legado (Opcional - Deprecated)
 
-Se você tem um PDF ou JRXML de referência de layout legado, 
+Se você tem um PDF ou JRXML de referência de layout legado,
 coloque em `examples/` e mencione aqui:
 
 ```
@@ -217,6 +259,7 @@ Descrição: "Usar como referência visual de layout"
 ## ✅ PASSO 9: Validação Antes de Submeter
 
 Checklist:
+
 - [ ] Preencheu todos os campos (passos 1-5)?
 - [ ] View escolhida existe em rules/views.json?
 - [ ] Todos os campos existem na view?
@@ -236,6 +279,11 @@ Checklist:
 **Cole este prompt na Copilot Chat (Ctrl+I) após preencher acima:**
 
 ```
+📌 PASSO 0 — Campos a adicionar na view (se necessário):
+View: [nome]
+Campo: [campo] | Descrição: [desc] | Tipo: [tipo]
+(em branco se view já está completa em rules/views.json)
+
 Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MODO SIMPLES).
 
 📋 DETALHES DO RELATÓRIO:
@@ -347,6 +395,7 @@ Após colar o prompt no Copilot:
 ## 📚 Exemplos Completos
 
 Veja em `docs/EXAMPLES.md`:
+
 - Exemplo 1: Relatório Simples (Vendas Diárias)
 - Exemplo 2: Com Agregação (Vendas por Vendedor)
 - Exemplo 3: Com Filtros Múltiplos (Pacientes Atendidos)

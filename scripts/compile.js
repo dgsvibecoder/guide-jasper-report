@@ -1,13 +1,53 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const { spawnSync } = require('child_process');
-const { runValidation, checkModelContamination, validateMasterDetail } = require('./validate');
+const dotenvResult = require("dotenv").config({ path: __dirname + "/.env" });
+const _dotenvParsed =
+  dotenvResult && dotenvResult.parsed ? dotenvResult.parsed : {};
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const { spawnSync } = require("child_process");
+const {
+  runValidation,
+  checkModelContamination,
+  validateMasterDetail,
+  validateMasterDetail2L,
+} = require("./validate");
+
+function logDbCredentials() {
+  const src = (key) =>
+    key in _dotenvParsed ? "via .env" : "via variavel de ambiente";
+  if (process.env.DB_URL) {
+    console.log(
+      `[DB] DB_URL:      ${process.env.DB_URL} (detectado ${src("DB_URL")})`,
+    );
+  } else {
+    console.warn(
+      "[AVISO] DB_URL nao definido. PDF com dados reais pode falhar.",
+    );
+    console.warn(
+      "        Defina DB_URL em scripts/.env ou como variavel de ambiente.",
+    );
+  }
+  if (process.env.DB_USER) {
+    console.log(`[DB] DB_USER:     ${process.env.DB_USER} (detectado)`);
+  } else {
+    console.warn(
+      "[AVISO] DB_USER nao definido. Defina DB_USER em scripts/.env ou como variavel de ambiente.",
+    );
+  }
+  if (process.env.DB_PASSWORD) {
+    console.log("[DB] DB_PASSWORD: *** (definido)");
+  } else {
+    console.warn(
+      "[AVISO] DB_PASSWORD nao definido. Defina DB_PASSWORD em scripts/.env ou como variavel de ambiente.",
+    );
+  }
+}
 
 function sha256(content) {
-  return crypto.createHash('sha256').update(content).digest('hex');
+  return crypto.createHash("sha256").update(content).digest("hex");
 }
 
 function ensureDir(dir) {
@@ -19,17 +59,19 @@ function ensureDir(dir) {
 function runCommand(command, args, cwd) {
   const res = spawnSync(command, args, {
     cwd,
-    stdio: 'pipe',
-    encoding: 'utf8'
+    stdio: "pipe",
+    encoding: "utf8",
   });
 
   if (res.status !== 0) {
-    const stderr = (res.stderr || '').trim();
-    const stdout = (res.stdout || '').trim();
-    throw new Error(`${command} failed: ${stderr || stdout || `exit code ${res.status}`}`);
+    const stderr = (res.stderr || "").trim();
+    const stdout = (res.stdout || "").trim();
+    throw new Error(
+      `${command} failed: ${stderr || stdout || `exit code ${res.status}`}`,
+    );
   }
 
-  return res.stdout || '';
+  return res.stdout || "";
 }
 
 function assessEmptyDataRisk(pdfPath) {
@@ -38,8 +80,8 @@ function assessEmptyDataRisk(pdfPath) {
       hasPdf: false,
       pdfSizeBytes: null,
       possibleEmptyData: null,
-      severity: 'info',
-      message: 'PDF not generated in this run.'
+      severity: "info",
+      message: "PDF not generated in this run.",
     };
   }
 
@@ -49,47 +91,76 @@ function assessEmptyDataRisk(pdfPath) {
     hasPdf: true,
     pdfSizeBytes: size,
     possibleEmptyData: possibleEmpty,
-    severity: possibleEmpty ? 'warning' : 'info',
+    severity: possibleEmpty ? "warning" : "info",
     message: possibleEmpty
       ? `PDF size is very small (${size} bytes). Possible empty dataset or mapping issue.`
-      : `PDF size looks healthy (${size} bytes).`
+      : `PDF size looks healthy (${size} bytes).`,
   };
 }
 
 function errorGuidance(message) {
-  const m = String(message || '').toLowerCase();
+  const m = String(message || "").toLowerCase();
   const tips = [];
 
-  if (m.includes('connection refused') || m.includes('driver') || m.includes('jdbc')) {
-    tips.push('Verifique conexão com banco (DB_URL/DB_USER/DB_PASSWORD) e se o PostgreSQL está acessível.');
+  if (
+    m.includes("connection refused") ||
+    m.includes("driver") ||
+    m.includes("jdbc")
+  ) {
+    tips.push(
+      "Verifique conexão com banco (DB_URL/DB_USER/DB_PASSWORD) e se o PostgreSQL está acessível.",
+    );
   }
-  if (m.includes('field type mismatch') || m.includes('type mismatch')) {
-    tips.push('Confira tipo de cada <field class> no JRXML versus rules/views.json.');
+  if (m.includes("field type mismatch") || m.includes("type mismatch")) {
+    tips.push(
+      "Confira tipo de cada <field class> no JRXML versus rules/views.json.",
+    );
   }
-  if (m.includes('semantic contamination')) {
-    tips.push('Remova herança de query/fields/parameters do modelo visual e revalide com --check-model-contamination.');
+  if (m.includes("semantic contamination")) {
+    tips.push(
+      "Remova herança de query/fields/parameters do modelo visual e revalide com --check-model-contamination.",
+    );
   }
-  if (m.includes('jrvalidationexception') || m.includes('columns and margins do not fit')) {
-    tips.push('Ajuste pageWidth/margins/columnWidth no JRXML (columnWidth = pageWidth - leftMargin - rightMargin).');
+  if (
+    m.includes("jrvalidationexception") ||
+    m.includes("columns and margins do not fit")
+  ) {
+    tips.push(
+      "Ajuste pageWidth/margins/columnWidth no JRXML (columnWidth = pageWidth - leftMargin - rightMargin).",
+    );
   }
-  if (m.includes('detail jrxml not found') || m.includes('detail.jasper not found')) {
-    tips.push('Confirme caminho do detail no comando e permissões de escrita em output/.');
+  if (
+    m.includes("detail jrxml not found") ||
+    m.includes("detail.jasper not found")
+  ) {
+    tips.push(
+      "Confirme caminho do detail no comando e permissões de escrita em output/.",
+    );
   }
-  if (m.includes('model jrxml not found')) {
-    tips.push('Revise o caminho do modelo e evite usar arquivo temporário inexistente.');
+  if (m.includes("máximo de 2 níveis") || m.includes("detail3")) {
+    tips.push(
+      "Máximo de 2 níveis de detail suportados. Use apenas --detail e --detail2.",
+    );
+  }
+  if (m.includes("model jrxml not found")) {
+    tips.push(
+      "Revise o caminho do modelo e evite usar arquivo temporário inexistente.",
+    );
   }
 
   if (tips.length === 0) {
-    tips.push('Revise o arquivo .log gerado em output/ e rode validate.js antes de compilar.');
+    tips.push(
+      "Revise o arquivo .log gerado em output/ e rode validate.js antes de compilar.",
+    );
   }
 
   return tips;
 }
 
 function ensureJavaRunnerBuilt() {
-  const runnerDir = path.resolve(__dirname, 'jasper-runner');
-  const jarPath = path.join(runnerDir, 'target', 'jasper-runner.jar');
-  const forceRebuild = process.env.FORCE_JASPER_RUNNER_BUILD === '1';
+  const runnerDir = path.resolve(__dirname, "jasper-runner");
+  const jarPath = path.join(runnerDir, "target", "jasper-runner.jar");
+  const forceRebuild = process.env.FORCE_JASPER_RUNNER_BUILD === "1";
 
   // Reuse existing jar by default to keep execution deterministic and avoid
   // transient shaded-artifact replacement errors in repeated runs.
@@ -97,7 +168,7 @@ function ensureJavaRunnerBuilt() {
     return jarPath;
   }
 
-  runCommand('mvn', ['-q', '-DskipTests', 'package'], runnerDir);
+  runCommand("mvn", ["-q", "-DskipTests", "package"], runnerDir);
 
   if (!fs.existsSync(jarPath)) {
     throw new Error(`Jasper runner jar not found after build: ${jarPath}`);
@@ -111,149 +182,200 @@ function ensureJavaRunnerBuilt() {
 async function compileMasterDetail(masterJrxmlPath, detailJrxmlPath, opts) {
   const { wantsPdf, rulesPath, relationshipKey } = opts;
 
-  const masterBaseName = path.basename(masterJrxmlPath, '.jrxml');
-  const detailBaseName = path.basename(detailJrxmlPath, '.jrxml');
+  const masterBaseName = path.basename(masterJrxmlPath, ".jrxml");
+  const detailBaseName = path.basename(detailJrxmlPath, ".jrxml");
   const outputDir = path.dirname(masterJrxmlPath);
 
   const logLines = [];
   const log = (level, msg) => {
     const line = `[${new Date().toISOString()}] ${level} ${msg}`;
     logLines.push(line);
-    if (level === 'ERROR') console.error(line);
+    if (level === "ERROR") console.error(line);
     else console.log(line);
   };
 
-  log('INFO', '[M/D] Starting master/detail 2-stage pipeline');
-  log('INFO', `[M/D] Master JRXML : ${path.basename(masterJrxmlPath)}`);
-  log('INFO', `[M/D] Detail JRXML : ${path.basename(detailJrxmlPath)}`);
-  if (relationshipKey) log('INFO', `[M/D] Relationship : ${relationshipKey}`);
+  log("INFO", "[M/D] Starting master/detail 2-stage pipeline");
+  log("INFO", `[M/D] Master JRXML : ${path.basename(masterJrxmlPath)}`);
+  log("INFO", `[M/D] Detail JRXML : ${path.basename(detailJrxmlPath)}`);
+  if (relationshipKey) log("INFO", `[M/D] Relationship : ${relationshipKey}`);
 
   // ── Stage 1/5: Validate master JRXML ────────────────────────────────────
-  log('INFO', '[Stage 1/5] Validating master JRXML...');
+  log("INFO", "[Stage 1/5] Validating master JRXML...");
   const masterValidation = await runValidation(masterJrxmlPath, rulesPath);
-  masterValidation.warnings.forEach((w) => log('WARN', w));
+  masterValidation.warnings.forEach((w) => log("WARN", w));
   if (!masterValidation.ok) {
-    masterValidation.errors.forEach((e) => log('ERROR', e));
-    log('ERROR', '[Stage 1/5] Master JRXML validation FAILED — aborting');
+    masterValidation.errors.forEach((e) => log("ERROR", e));
+    log("ERROR", "[Stage 1/5] Master JRXML validation FAILED — aborting");
     process.exit(2);
   }
-  log('INFO', `[Stage 1/5] Master JRXML valid (${masterValidation.reportName})`);
+  log(
+    "INFO",
+    `[Stage 1/5] Master JRXML valid (${masterValidation.reportName})`,
+  );
 
   // ── Stage 2/5: Validate detail JRXML ────────────────────────────────────
-  log('INFO', '[Stage 2/5] Validating detail JRXML...');
+  log("INFO", "[Stage 2/5] Validating detail JRXML...");
   const detailValidation = await runValidation(detailJrxmlPath, rulesPath);
-  detailValidation.warnings.forEach((w) => log('WARN', w));
+  detailValidation.warnings.forEach((w) => log("WARN", w));
   if (!detailValidation.ok) {
-    detailValidation.errors.forEach((e) => log('ERROR', e));
-    log('ERROR', '[Stage 2/5] Detail JRXML validation FAILED — aborting');
+    detailValidation.errors.forEach((e) => log("ERROR", e));
+    log("ERROR", "[Stage 2/5] Detail JRXML validation FAILED — aborting");
     process.exit(2);
   }
-  log('INFO', `[Stage 2/5] Detail JRXML valid (${detailValidation.reportName})`);
+  log(
+    "INFO",
+    `[Stage 2/5] Detail JRXML valid (${detailValidation.reportName})`,
+  );
 
   // ── Stage 2.5: Semantic master/detail validation (if relationship key given)
   if (relationshipKey) {
-    log('INFO', `[Stage 2.5] Semantic M/D validation (relationship: ${relationshipKey})...`);
+    log(
+      "INFO",
+      `[Stage 2.5] Semantic M/D validation (relationship: ${relationshipKey})...`,
+    );
     const mdResult = await validateMasterDetail(
       masterJrxmlPath,
       detailJrxmlPath,
       rulesPath,
-      relationshipKey
+      relationshipKey,
     );
-    mdResult.warnings.forEach((w) => log('WARN', `[M/D] ${w}`));
+    mdResult.warnings.forEach((w) => log("WARN", `[M/D] ${w}`));
     if (!mdResult.ok) {
-      mdResult.errors.forEach((e) => log('ERROR', `[M/D] ${e}`));
-      log('ERROR', '[Stage 2.5] Semantic M/D validation FAILED — aborting');
+      mdResult.errors.forEach((e) => log("ERROR", `[M/D] ${e}`));
+      log("ERROR", "[Stage 2.5] Semantic M/D validation FAILED — aborting");
       process.exit(3);
     }
-    log('INFO', '[Stage 2.5] Semantic M/D validation passed');
+    log("INFO", "[Stage 2.5] Semantic M/D validation passed");
   }
 
   const runnerJar = ensureJavaRunnerBuilt();
 
   // ── Stage 3/5: Compile detail.jrxml → detail.jasper ─────────────────────
-  log('INFO', '[Stage 3/5] Compiling detail JRXML...');
+  log("INFO", "[Stage 3/5] Compiling detail JRXML...");
   const detailJasperPath = path.join(outputDir, `${detailBaseName}.jasper`);
   runCommand(
-    'java',
-    ['-jar', runnerJar, 'compile', path.resolve(detailJrxmlPath), path.resolve(detailJasperPath)],
-    outputDir
+    "java",
+    [
+      "-jar",
+      runnerJar,
+      "compile",
+      path.resolve(detailJrxmlPath),
+      path.resolve(detailJasperPath),
+    ],
+    outputDir,
   );
   if (!fs.existsSync(detailJasperPath)) {
-    log('ERROR', `[Stage 3/5] detail.jasper not found after compilation: ${detailJasperPath}`);
+    log(
+      "ERROR",
+      `[Stage 3/5] detail.jasper not found after compilation: ${detailJasperPath}`,
+    );
     process.exit(1);
   }
-  log('INFO', `[Stage 3/5] detail.jasper compiled OK: ${path.basename(detailJasperPath)}`);
+  log(
+    "INFO",
+    `[Stage 3/5] detail.jasper compiled OK: ${path.basename(detailJasperPath)}`,
+  );
 
   // ── Stage 4/5: Compile master.jrxml → master.jasper ─────────────────────
-  log('INFO', '[Stage 4/5] Compiling master JRXML...');
+  log("INFO", "[Stage 4/5] Compiling master JRXML...");
   const masterJasperPath = path.join(outputDir, `${masterBaseName}.jasper`);
   runCommand(
-    'java',
-    ['-jar', runnerJar, 'compile', path.resolve(masterJrxmlPath), path.resolve(masterJasperPath)],
-    outputDir
+    "java",
+    [
+      "-jar",
+      runnerJar,
+      "compile",
+      path.resolve(masterJrxmlPath),
+      path.resolve(masterJasperPath),
+    ],
+    outputDir,
   );
-  log('INFO', `[Stage 4/5] master.jasper compiled OK: ${path.basename(masterJasperPath)}`);
+  log(
+    "INFO",
+    `[Stage 4/5] master.jasper compiled OK: ${path.basename(masterJasperPath)}`,
+  );
 
   // ── Stage 5/5: Generate PDF ──────────────────────────────────────────────
   let pdfPath = null;
   if (wantsPdf) {
-    log('INFO', '[Stage 5/5] Generating master PDF (detail resolved via SUBREPORT_DETAIL_PATH)...');
+    log(
+      "INFO",
+      "[Stage 5/5] Generating master PDF (detail resolved via SUBREPORT_DETAIL_PATH)...",
+    );
+    logDbCredentials();
     pdfPath = path.join(outputDir, `${masterBaseName}.pdf`);
     const absoluteDetailJasperPath = path.resolve(detailJasperPath);
-    const dbUrl = process.env.DB_URL || 'jdbc:postgresql://172.30.64.1:5432/jasper-report-ai?sslmode=disable';
-    const dbUser = process.env.DB_USER || 'postgres';
-    const dbPassword = process.env.DB_PASSWORD || 'postgres';
+    const dbUrl =
+      process.env.DB_URL ||
+      "jdbc:postgresql://172.30.64.1:5432/jasper-report-ai?sslmode=disable";
+    const dbUser = process.env.DB_USER || "postgres";
+    const dbPassword = process.env.DB_PASSWORD || "postgres";
     runCommand(
-      'java',
+      "java",
       [
-        '-jar', runnerJar,
-        'pdf-with-data',
+        "-jar",
+        runnerJar,
+        "pdf-with-data",
         path.resolve(masterJasperPath),
         path.resolve(pdfPath),
-        dbUrl, dbUser, dbPassword,
-        `SUBREPORT_DETAIL_PATH=${absoluteDetailJasperPath}`
+        dbUrl,
+        dbUser,
+        dbPassword,
+        `SUBREPORT_DETAIL_PATH=${absoluteDetailJasperPath}`,
       ],
-      outputDir
+      outputDir,
     );
-    log('INFO', `[Stage 5/5] Master PDF generated: ${path.basename(pdfPath)}`);
+    log("INFO", `[Stage 5/5] Master PDF generated: ${path.basename(pdfPath)}`);
   } else {
-    log('INFO', '[Stage 5/5] PDF generation skipped (--pdf not specified)');
+    log("INFO", "[Stage 5/5] PDF generation skipped (--pdf not specified)");
   }
 
   const diagnostic = assessEmptyDataRisk(pdfPath);
-  log('INFO', '[Summary] Master rows: unknown (row count not exposed by current runtime)');
-  log('INFO', '[Summary] Detail rows: unknown (row count not exposed by current runtime)');
+  log(
+    "INFO",
+    "[Summary] Master rows: unknown (row count not exposed by current runtime)",
+  );
+  log(
+    "INFO",
+    "[Summary] Detail rows: unknown (row count not exposed by current runtime)",
+  );
   if (diagnostic.hasPdf) {
-    log('INFO', `[Summary] PDF size: ${diagnostic.pdfSizeBytes} bytes`);
+    log("INFO", `[Summary] PDF size: ${diagnostic.pdfSizeBytes} bytes`);
     if (diagnostic.possibleEmptyData) {
-      log('WARN', `[Summary] ${diagnostic.message}`);
-      log('WARN', '[Summary] Check field types, filter ranges and relation keys if data seems missing.');
+      log("WARN", `[Summary] ${diagnostic.message}`);
+      log(
+        "WARN",
+        "[Summary] Check field types, filter ranges and relation keys if data seems missing.",
+      );
     }
   } else {
-    log('INFO', '[Summary] PDF not requested in this run (--pdf not specified)');
+    log(
+      "INFO",
+      "[Summary] PDF not requested in this run (--pdf not specified)",
+    );
   }
 
   // ── Write log ────────────────────────────────────────────────────────────
   const logPath = path.join(outputDir, `${masterBaseName}.log`);
-  fs.writeFileSync(logPath, logLines.join('\n') + '\n', 'utf8');
+  fs.writeFileSync(logPath, logLines.join("\n") + "\n", "utf8");
 
   // ── Write metadata with reportTopology ───────────────────────────────────
-  const metadataPath = path.join(outputDir, 'metadata.json');
-  const masterJrxmlContent = fs.readFileSync(masterJrxmlPath, 'utf8');
-  const detailJrxmlContent = fs.readFileSync(detailJrxmlPath, 'utf8');
+  const metadataPath = path.join(outputDir, "metadata.json");
+  const masterJrxmlContent = fs.readFileSync(masterJrxmlPath, "utf8");
+  const detailJrxmlContent = fs.readFileSync(detailJrxmlPath, "utf8");
 
   const metadata = {
     reportName: masterValidation.reportName,
     generatedAt: new Date().toISOString(),
-    format: 'MASTER_DETAIL',
+    format: "MASTER_DETAIL",
     reportTopology: {
-      type: 'MASTER_DETAIL',
+      type: "MASTER_DETAIL",
       masterFile: path.basename(masterJrxmlPath),
       detailFiles: [path.basename(detailJrxmlPath)],
       relationKeys: relationshipKey ? [relationshipKey] : [],
       parameterBindings: {
-        SUBREPORT_DETAIL_PATH: path.basename(detailJasperPath)
-      }
+        SUBREPORT_DETAIL_PATH: path.basename(detailJasperPath),
+      },
     },
     outputs: {
       masterJrxml: path.basename(masterJrxmlPath),
@@ -261,62 +383,75 @@ async function compileMasterDetail(masterJrxmlPath, detailJrxmlPath, opts) {
       detailJrxml: path.basename(detailJrxmlPath),
       detailJasper: path.basename(detailJasperPath),
       pdf: pdfPath ? path.basename(pdfPath) : null,
-      log: path.basename(logPath)
+      log: path.basename(logPath),
     },
     checksums: {
       masterJrxml: sha256(masterJrxmlContent),
       masterJasper: sha256(fs.readFileSync(masterJasperPath)),
       detailJrxml: sha256(detailJrxmlContent),
       detailJasper: sha256(fs.readFileSync(detailJasperPath)),
-      pdf: pdfPath ? sha256(fs.readFileSync(pdfPath)) : null
+      pdf: pdfPath ? sha256(fs.readFileSync(pdfPath)) : null,
     },
     validation: {
       masterXmlValid: masterValidation.ok,
       detailXmlValid: detailValidation.ok,
-      semanticValidation: relationshipKey ? 'passed' : 'skipped',
-      relationshipKey: relationshipKey || null
+      semanticValidation: relationshipKey ? "passed" : "skipped",
+      relationshipKey: relationshipKey || null,
     },
     diagnostics: {
-      mode: 'MASTER_DETAIL',
+      mode: "MASTER_DETAIL",
       outputDir: outputDir,
       emptyDataRisk: diagnostic,
       troubleshootingHints: [
-        'Se o detalhe estiver vazio, valide relation key e parâmetro subreport.',
-        'Se PDF vier muito pequeno, revise filtros de data e classes de <field>.',
-        'Use master.log para identificar a etapa que falhou no pipeline 2-stage.'
-      ]
+        "Se o detalhe estiver vazio, valide relation key e parâmetro subreport.",
+        "Se PDF vier muito pequeno, revise filtros de data e classes de <field>.",
+        "Use master.log para identificar a etapa que falhou no pipeline 2-stage.",
+      ],
     },
-    note: 'Master/Detail report compiled with 2-stage pipeline (Fase 4).'
+    note: "Master/Detail report compiled with 2-stage pipeline (Fase 4).",
   };
 
-  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), "utf8");
 
   // [FASE 4] Validation: Check for ERROR in master.log and validate artifacts
-  const logContent = fs.readFileSync(logPath, 'utf8');
-  if (logContent.includes('[M/D] ERROR')) {
-    console.error('ERROR compile.js: Master/Detail log contains ERROR messages. Check master.log for details.');
+  const logContent = fs.readFileSync(logPath, "utf8");
+  if (logContent.includes("[M/D] ERROR")) {
+    console.error(
+      "ERROR compile.js: Master/Detail log contains ERROR messages. Check master.log for details.",
+    );
     process.exit(1);
   }
 
   // [FASE 4] Validation: Artifact inventory for MASTER_DETAIL mode
-  const requiredMasterDetailArtifacts = [masterJrxmlPath, detailJrxmlPath, masterJasperPath, detailJasperPath, logPath, metadataPath];
+  const requiredMasterDetailArtifacts = [
+    masterJrxmlPath,
+    detailJrxmlPath,
+    masterJasperPath,
+    detailJasperPath,
+    logPath,
+    metadataPath,
+  ];
   if (wantsPdf) requiredMasterDetailArtifacts.push(pdfPath);
-  
-  const missingMArtifacts = requiredMasterDetailArtifacts.filter((a) => !fs.existsSync(a));
+
+  const missingMArtifacts = requiredMasterDetailArtifacts.filter(
+    (a) => !fs.existsSync(a),
+  );
   if (missingMArtifacts.length > 0) {
-    console.error(`ERROR [M/D] missing artifacts: ${missingMArtifacts.map((a) => path.basename(a)).join(', ')}`);
+    console.error(
+      `ERROR [M/D] missing artifacts: ${missingMArtifacts.map((a) => path.basename(a)).join(", ")}`,
+    );
     process.exit(1);
   }
 
   // [FASE 4] Validation: Metadata JSON structure check for MASTER_DETAIL
   try {
-    const metadataContent = fs.readFileSync(metadataPath, 'utf8');
+    const metadataContent = fs.readFileSync(metadataPath, "utf8");
     const metadataObj = JSON.parse(metadataContent);
-    if (metadataObj.reportTopology?.type !== 'MASTER_DETAIL') {
-      throw new Error('metadata: expected reportTopology.type = MASTER_DETAIL');
+    if (metadataObj.reportTopology?.type !== "MASTER_DETAIL") {
+      throw new Error("metadata: expected reportTopology.type = MASTER_DETAIL");
     }
     if (!metadataObj.validation || !metadataObj.diagnostics) {
-      throw new Error('metadata: missing validation or diagnostics section');
+      throw new Error("metadata: missing validation or diagnostics section");
     }
   } catch (err) {
     console.error(`ERROR [M/D] metadata validation failed: ${err.message}`);
@@ -330,24 +465,409 @@ async function compileMasterDetail(masterJrxmlPath, detailJrxmlPath, opts) {
   console.log(`OK [M/D] Metadata        : ${metadataPath}`);
 }
 
+// ─── Master/Detail 2L 3-stage pipeline ──────────────────────────────────────
+
+async function compileMasterDetail2L(
+  masterJrxmlPath,
+  detail1JrxmlPath,
+  detail2JrxmlPath,
+  opts,
+) {
+  const { wantsPdf, rulesPath, relationshipKey } = opts;
+
+  const masterBaseName = path.basename(masterJrxmlPath, ".jrxml");
+  const detail1BaseName = path.basename(detail1JrxmlPath, ".jrxml");
+  const detail2BaseName = path.basename(detail2JrxmlPath, ".jrxml");
+  const outputDir = path.dirname(masterJrxmlPath);
+
+  const logLines = [];
+  const log = (level, msg) => {
+    const line = `[${new Date().toISOString()}] ${level} ${msg}`;
+    logLines.push(line);
+    if (level === "ERROR") console.error(line);
+    else console.log(line);
+  };
+
+  log("INFO", "[M/D/2L] Starting master/detail 3-stage pipeline (2 levels)");
+  log("INFO", `[M/D/2L] Master JRXML  : ${path.basename(masterJrxmlPath)}`);
+  log("INFO", `[M/D/2L] Detail1 JRXML : ${path.basename(detail1JrxmlPath)}`);
+  log("INFO", `[M/D/2L] Detail2 JRXML : ${path.basename(detail2JrxmlPath)}`);
+  if (relationshipKey)
+    log("INFO", `[M/D/2L] Relationship  : ${relationshipKey}`);
+
+  // ── Stage 1/6: Validate master JRXML ────────────────────────────────────
+  log("INFO", "[Stage 1/6] Validating master JRXML...");
+  const masterValidation = await runValidation(masterJrxmlPath, rulesPath);
+  masterValidation.warnings.forEach((w) => log("WARN", w));
+  if (!masterValidation.ok) {
+    masterValidation.errors.forEach((e) => log("ERROR", e));
+    log("ERROR", "[Stage 1/6] Master JRXML validation FAILED — aborting");
+    process.exit(2);
+  }
+  log(
+    "INFO",
+    `[Stage 1/6] Master JRXML valid (${masterValidation.reportName})`,
+  );
+
+  // ── Stage 2/6: Validate detail1 JRXML ───────────────────────────────────
+  log("INFO", "[Stage 2/6] Validating detail1 JRXML...");
+  const detail1Validation = await runValidation(detail1JrxmlPath, rulesPath);
+  detail1Validation.warnings.forEach((w) => log("WARN", w));
+  if (!detail1Validation.ok) {
+    detail1Validation.errors.forEach((e) => log("ERROR", e));
+    log("ERROR", "[Stage 2/6] Detail1 JRXML validation FAILED — aborting");
+    process.exit(2);
+  }
+  log(
+    "INFO",
+    `[Stage 2/6] Detail1 JRXML valid (${detail1Validation.reportName})`,
+  );
+
+  // ── Stage 2.5/6: Validate detail2 JRXML ─────────────────────────────────
+  log("INFO", "[Stage 2.5/6] Validating detail2 JRXML...");
+  const detail2Validation = await runValidation(detail2JrxmlPath, rulesPath);
+  detail2Validation.warnings.forEach((w) => log("WARN", w));
+  if (!detail2Validation.ok) {
+    detail2Validation.errors.forEach((e) => log("ERROR", e));
+    log("ERROR", "[Stage 2.5/6] Detail2 JRXML validation FAILED — aborting");
+    process.exit(2);
+  }
+  log(
+    "INFO",
+    `[Stage 2.5/6] Detail2 JRXML valid (${detail2Validation.reportName})`,
+  );
+
+  // ── Stage 2.7: Semantic M/D validation (master + detail1) ───────────────
+  if (relationshipKey) {
+    log(
+      "INFO",
+      `[Stage 2.7] Semantic M/D validation (master+detail1, relationship: ${relationshipKey})...`,
+    );
+    const mdResult = await validateMasterDetail(
+      masterJrxmlPath,
+      detail1JrxmlPath,
+      rulesPath,
+      relationshipKey,
+    );
+    mdResult.warnings.forEach((w) => log("WARN", `[M/D] ${w}`));
+    if (!mdResult.ok) {
+      mdResult.errors.forEach((e) => log("ERROR", `[M/D] ${e}`));
+      log(
+        "ERROR",
+        "[Stage 2.7] Semantic M/D validation (level 1) FAILED — aborting",
+      );
+      process.exit(3);
+    }
+    log("INFO", "[Stage 2.7] Semantic M/D validation (level 1) passed");
+
+    // ── Stage 2.8: Semantic M/D 2L validation (detail1 + detail2) ──────────
+    log("INFO", "[Stage 2.8] Semantic M/D 2L validation (detail1→detail2)...");
+    const md2lResult = await validateMasterDetail2L(
+      masterJrxmlPath,
+      detail1JrxmlPath,
+      detail2JrxmlPath,
+      rulesPath,
+      relationshipKey,
+    );
+    md2lResult.warnings.forEach((w) => log("WARN", `[M/D/2L] ${w}`));
+    if (!md2lResult.ok) {
+      md2lResult.errors.forEach((e) => log("ERROR", `[M/D/2L] ${e}`));
+      log("ERROR", "[Stage 2.8] Semantic M/D 2L validation FAILED — aborting");
+      process.exit(3);
+    }
+    log("INFO", "[Stage 2.8] Semantic M/D 2L validation passed");
+  }
+
+  const runnerJar = ensureJavaRunnerBuilt();
+
+  // ── Stage 3/6: Compile detail2.jrxml → detail2.jasper ───────────────────
+  log("INFO", "[Stage 3/6] Compiling detail2 JRXML...");
+  const detail2JasperPath = path.join(outputDir, `${detail2BaseName}.jasper`);
+  runCommand(
+    "java",
+    [
+      "-jar",
+      runnerJar,
+      "compile",
+      path.resolve(detail2JrxmlPath),
+      path.resolve(detail2JasperPath),
+    ],
+    outputDir,
+  );
+  if (!fs.existsSync(detail2JasperPath)) {
+    log(
+      "ERROR",
+      `[Stage 3/6] detail2.jasper not found after compilation: ${detail2JasperPath}`,
+    );
+    process.exit(1);
+  }
+  log(
+    "INFO",
+    `[Stage 3/6] detail2.jasper compiled OK: ${path.basename(detail2JasperPath)}`,
+  );
+
+  // ── Stage 4/6: Compile detail1.jrxml → detail1.jasper ───────────────────
+  log("INFO", "[Stage 4/6] Compiling detail1 JRXML...");
+  const detail1JasperPath = path.join(outputDir, `${detail1BaseName}.jasper`);
+  runCommand(
+    "java",
+    [
+      "-jar",
+      runnerJar,
+      "compile",
+      path.resolve(detail1JrxmlPath),
+      path.resolve(detail1JasperPath),
+    ],
+    outputDir,
+  );
+  if (!fs.existsSync(detail1JasperPath)) {
+    log(
+      "ERROR",
+      `[Stage 4/6] detail1.jasper not found after compilation: ${detail1JasperPath}`,
+    );
+    process.exit(1);
+  }
+  log(
+    "INFO",
+    `[Stage 4/6] detail1.jasper compiled OK: ${path.basename(detail1JasperPath)}`,
+  );
+
+  // ── Stage 5/6: Compile master.jrxml → master.jasper ─────────────────────
+  log("INFO", "[Stage 5/6] Compiling master JRXML...");
+  const masterJasperPath = path.join(outputDir, `${masterBaseName}.jasper`);
+  runCommand(
+    "java",
+    [
+      "-jar",
+      runnerJar,
+      "compile",
+      path.resolve(masterJrxmlPath),
+      path.resolve(masterJasperPath),
+    ],
+    outputDir,
+  );
+  log(
+    "INFO",
+    `[Stage 5/6] master.jasper compiled OK: ${path.basename(masterJasperPath)}`,
+  );
+
+  // ── Stage 6/6: Generate PDF ──────────────────────────────────────────────
+  let pdfPath = null;
+  if (wantsPdf) {
+    log(
+      "INFO",
+      "[Stage 6/6] Generating master PDF (SUBREPORT_DETAIL_PATH=detail1, SUBREPORT_DETAIL2_PATH=detail2)...",
+    );
+    logDbCredentials();
+    pdfPath = path.join(outputDir, `${masterBaseName}.pdf`);
+    const absoluteDetail1JasperPath = path.resolve(detail1JasperPath);
+    const absoluteDetail2JasperPath = path.resolve(detail2JasperPath);
+    const dbUrl =
+      process.env.DB_URL ||
+      "jdbc:postgresql://172.30.64.1:5432/jasper-report-ai?sslmode=disable";
+    const dbUser = process.env.DB_USER || "postgres";
+    const dbPassword = process.env.DB_PASSWORD || "postgres";
+    runCommand(
+      "java",
+      [
+        "-jar",
+        runnerJar,
+        "pdf-with-data",
+        path.resolve(masterJasperPath),
+        path.resolve(pdfPath),
+        dbUrl,
+        dbUser,
+        dbPassword,
+        `SUBREPORT_DETAIL_PATH=${absoluteDetail1JasperPath}`,
+        `SUBREPORT_DETAIL2_PATH=${absoluteDetail2JasperPath}`,
+      ],
+      outputDir,
+    );
+    log("INFO", `[Stage 6/6] Master PDF generated: ${path.basename(pdfPath)}`);
+  } else {
+    log("INFO", "[Stage 6/6] PDF generation skipped (--pdf not specified)");
+  }
+
+  const diagnostic = assessEmptyDataRisk(pdfPath);
+  if (diagnostic.hasPdf) {
+    log("INFO", `[Summary] PDF size: ${diagnostic.pdfSizeBytes} bytes`);
+    if (diagnostic.possibleEmptyData) {
+      log("WARN", `[Summary] ${diagnostic.message}`);
+      log(
+        "WARN",
+        "[Summary] Check field types, filter ranges and relation keys (both levels) if data seems missing.",
+      );
+    }
+  } else {
+    log(
+      "INFO",
+      "[Summary] PDF not requested in this run (--pdf not specified)",
+    );
+  }
+
+  // ── Write log ────────────────────────────────────────────────────────────
+  const logPath = path.join(outputDir, `${masterBaseName}.log`);
+  fs.writeFileSync(logPath, logLines.join("\n") + "\n", "utf8");
+
+  // ── Write metadata with reportTopology ───────────────────────────────────
+  const metadataPath = path.join(outputDir, "metadata.json");
+  const masterJrxmlContent = fs.readFileSync(masterJrxmlPath, "utf8");
+  const detail1JrxmlContent = fs.readFileSync(detail1JrxmlPath, "utf8");
+  const detail2JrxmlContent = fs.readFileSync(detail2JrxmlPath, "utf8");
+
+  const metadata = {
+    reportName: masterValidation.reportName,
+    generatedAt: new Date().toISOString(),
+    format: "MASTER_DETAIL_2L",
+    reportTopology: {
+      type: "MASTER_DETAIL_2L",
+      masterFile: path.basename(masterJrxmlPath),
+      detailFiles: [
+        path.basename(detail1JrxmlPath),
+        path.basename(detail2JrxmlPath),
+      ],
+      relationKeys: relationshipKey ? [relationshipKey] : [],
+      parameterBindings: {
+        SUBREPORT_DETAIL_PATH: path.basename(detail1JasperPath),
+        SUBREPORT_DETAIL2_PATH: path.basename(detail2JasperPath),
+      },
+    },
+    outputs: {
+      masterJrxml: path.basename(masterJrxmlPath),
+      masterJasper: path.basename(masterJasperPath),
+      detail1Jrxml: path.basename(detail1JrxmlPath),
+      detail1Jasper: path.basename(detail1JasperPath),
+      detail2Jrxml: path.basename(detail2JrxmlPath),
+      detail2Jasper: path.basename(detail2JasperPath),
+      pdf: pdfPath ? path.basename(pdfPath) : null,
+      log: path.basename(logPath),
+    },
+    checksums: {
+      masterJrxml: sha256(masterJrxmlContent),
+      masterJasper: sha256(fs.readFileSync(masterJasperPath)),
+      detail1Jrxml: sha256(detail1JrxmlContent),
+      detail1Jasper: sha256(fs.readFileSync(detail1JasperPath)),
+      detail2Jrxml: sha256(detail2JrxmlContent),
+      detail2Jasper: sha256(fs.readFileSync(detail2JasperPath)),
+      pdf: pdfPath ? sha256(fs.readFileSync(pdfPath)) : null,
+    },
+    validation: {
+      masterXmlValid: masterValidation.ok,
+      detail1XmlValid: detail1Validation.ok,
+      detail2XmlValid: detail2Validation.ok,
+      semanticValidation: relationshipKey ? "passed" : "skipped",
+      relationshipKey: relationshipKey || null,
+    },
+    diagnostics: {
+      mode: "MASTER_DETAIL_2L",
+      outputDir: outputDir,
+      emptyDataRisk: diagnostic,
+      troubleshootingHints: [
+        "Se o detail1 estiver vazio, valide relation key (nível 1) e parâmetro subreport no master.",
+        "Se o detail2 estiver vazio, valide relation key (nível 2) e SUBREPORT_DETAIL2_PATH no detail1.",
+        "Certifique que master.jrxml repassa SUBREPORT_DETAIL2_PATH via <subreportParameter> para detail1.",
+        "Se PDF vier muito pequeno, revise filtros de data e classes de <field> em ambos os details.",
+        "Use master.log para identificar em qual estágio (1-6) ocorreu falha no pipeline 3-stage.",
+      ],
+    },
+    note: "Master/Detail 2L report compiled with 3-stage pipeline (B3).",
+  };
+
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), "utf8");
+
+  // [FASE 4] Validation: Check for ERROR in master.log
+  const logContent = fs.readFileSync(logPath, "utf8");
+  if (
+    logContent.includes("[M/D/2L] ERROR") ||
+    logContent.includes("[M/D] ERROR")
+  ) {
+    console.error(
+      "ERROR compile.js: Master/Detail 2L log contains ERROR messages. Check master.log for details.",
+    );
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Artifact inventory for MASTER_DETAIL_2L mode
+  const requiredArtifacts = [
+    masterJrxmlPath,
+    detail1JrxmlPath,
+    detail2JrxmlPath,
+    masterJasperPath,
+    detail1JasperPath,
+    detail2JasperPath,
+    logPath,
+    metadataPath,
+  ];
+  if (wantsPdf) requiredArtifacts.push(pdfPath);
+
+  const missingArtifacts = requiredArtifacts.filter((a) => !fs.existsSync(a));
+  if (missingArtifacts.length > 0) {
+    console.error(
+      `ERROR [M/D/2L] missing artifacts: ${missingArtifacts.map((a) => path.basename(a)).join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  // [FASE 4] Validation: Metadata JSON structure check for MASTER_DETAIL_2L
+  try {
+    const metadataContent = fs.readFileSync(metadataPath, "utf8");
+    const metadataObj = JSON.parse(metadataContent);
+    if (metadataObj.reportTopology?.type !== "MASTER_DETAIL_2L") {
+      throw new Error(
+        "metadata: expected reportTopology.type = MASTER_DETAIL_2L",
+      );
+    }
+    if (!metadataObj.validation || !metadataObj.diagnostics) {
+      throw new Error("metadata: missing validation or diagnostics section");
+    }
+  } catch (err) {
+    console.error(`ERROR [M/D/2L] metadata validation failed: ${err.message}`);
+    process.exit(1);
+  }
+
+  console.log(`OK [M/D/2L] Compiled detail2 : ${detail2JasperPath}`);
+  console.log(`OK [M/D/2L] Compiled detail1 : ${detail1JasperPath}`);
+  console.log(`OK [M/D/2L] Compiled master  : ${masterJasperPath}`);
+  if (pdfPath) console.log(`OK [M/D/2L] Generated PDF    : ${pdfPath}`);
+  console.log(`OK [M/D/2L] Log              : ${logPath}`);
+  console.log(`OK [M/D/2L] Metadata         : ${metadataPath}`);
+}
+
 // ─── Simple / existing pipeline ─────────────────────────────────────────────
 
 async function main() {
   const jrxmlArg = process.argv[2];
-  const wantsPdf = process.argv.includes('--pdf');
-  const blueprintFlagIdx = process.argv.indexOf('--style-blueprint');
-  const blueprintPath = blueprintFlagIdx !== -1 ? process.argv[blueprintFlagIdx + 1] : null;
-  const detailFlagIdx = process.argv.indexOf('--detail');
-  const detailJrxmlArg = detailFlagIdx !== -1 ? process.argv[detailFlagIdx + 1] : null;
-  const relFlagIdx = process.argv.indexOf('--relationship');
-  const relationshipKey = relFlagIdx !== -1 ? process.argv[relFlagIdx + 1] : null;
-  const rulesPath = path.resolve(__dirname, '..', 'rules', 'views.json');
+  const wantsPdf = process.argv.includes("--pdf");
+  const blueprintFlagIdx = process.argv.indexOf("--style-blueprint");
+  const blueprintPath =
+    blueprintFlagIdx !== -1 ? process.argv[blueprintFlagIdx + 1] : null;
+  const detailFlagIdx = process.argv.indexOf("--detail");
+  const detailJrxmlArg =
+    detailFlagIdx !== -1 ? process.argv[detailFlagIdx + 1] : null;
+  const detail2FlagIdx = process.argv.indexOf("--detail2");
+  const detail2JrxmlArg =
+    detail2FlagIdx !== -1 ? process.argv[detail2FlagIdx + 1] : null;
+  const relFlagIdx = process.argv.indexOf("--relationship");
+  const relationshipKey =
+    relFlagIdx !== -1 ? process.argv[relFlagIdx + 1] : null;
+  const rulesPath = path.resolve(__dirname, "..", "rules", "views.json");
+
+  // Block --detail3 or deeper
+  if (
+    process.argv.some((a) => a === "--detail3" || a.startsWith("--detail3"))
+  ) {
+    console.error(
+      "ERROR: Máximo de 2 níveis de detail suportados. Use apenas --detail e --detail2.",
+    );
+    process.exit(1);
+  }
 
   if (!jrxmlArg) {
     console.error(
-      'Usage:\n' +
-      '  node compile.js <report.jrxml> [--pdf] [--style-blueprint <blueprint.json>]\n' +
-      '  node compile.js <master.jrxml> --detail <detail.jrxml> [--pdf] [--relationship <relKey>]'
+      "Usage:\n" +
+        "  node compile.js <report.jrxml> [--pdf] [--style-blueprint <blueprint.json>]\n" +
+        "  node compile.js <master.jrxml> --detail <detail.jrxml> [--pdf] [--relationship <relKey>]\n" +
+        "  node compile.js <master.jrxml> --detail <detail1.jrxml> --detail2 <detail2.jrxml> [--pdf] [--relationship <relKey>]",
     );
     process.exit(1);
   }
@@ -358,6 +878,32 @@ async function main() {
     process.exit(1);
   }
 
+  // ── Master/Detail 2L mode: dispatch to 3-stage pipeline ─────────────────
+  if (detail2JrxmlArg) {
+    if (!detailJrxmlArg) {
+      console.error(
+        "ERROR: --detail2 requires --detail to also be specified (master → detail1 → detail2).",
+      );
+      process.exit(1);
+    }
+    const detail1JrxmlPath = path.resolve(detailJrxmlArg);
+    const detail2JrxmlPath = path.resolve(detail2JrxmlArg);
+    if (!fs.existsSync(detail1JrxmlPath)) {
+      console.error(`ERROR Detail1 JRXML not found: ${detail1JrxmlPath}`);
+      process.exit(1);
+    }
+    if (!fs.existsSync(detail2JrxmlPath)) {
+      console.error(`ERROR Detail2 JRXML not found: ${detail2JrxmlPath}`);
+      process.exit(1);
+    }
+    await compileMasterDetail2L(jrxmlPath, detail1JrxmlPath, detail2JrxmlPath, {
+      wantsPdf,
+      rulesPath,
+      relationshipKey,
+    });
+    return;
+  }
+
   // ── Master/Detail mode: dispatch to 2-stage pipeline ────────────────────
   if (detailJrxmlArg) {
     const detailJrxmlPath = path.resolve(detailJrxmlArg);
@@ -365,7 +911,11 @@ async function main() {
       console.error(`ERROR Detail JRXML not found: ${detailJrxmlPath}`);
       process.exit(1);
     }
-    await compileMasterDetail(jrxmlPath, detailJrxmlPath, { wantsPdf, rulesPath, relationshipKey });
+    await compileMasterDetail(jrxmlPath, detailJrxmlPath, {
+      wantsPdf,
+      rulesPath,
+      relationshipKey,
+    });
     return;
   }
 
@@ -377,52 +927,82 @@ async function main() {
   }
 
   const outputDir = path.dirname(jrxmlPath);
-  const baseName = path.basename(jrxmlPath, '.jrxml');
+  const baseName = path.basename(jrxmlPath, ".jrxml");
   ensureDir(outputDir);
 
-  const jrxmlContent = fs.readFileSync(jrxmlPath, 'utf8');
+  const jrxmlContent = fs.readFileSync(jrxmlPath, "utf8");
   const jasperPath = path.join(outputDir, `${baseName}.jasper`);
   const pdfPath = path.join(outputDir, `${baseName}.pdf`);
   const logPath = path.join(outputDir, `${baseName}.log`);
-  const metadataPath = path.join(outputDir, 'metadata.json');
+  const metadataPath = path.join(outputDir, "metadata.json");
 
   const runnerJar = ensureJavaRunnerBuilt();
-  runCommand('java', ['-jar', runnerJar, 'compile', jrxmlPath, jasperPath], outputDir);
+  runCommand(
+    "java",
+    ["-jar", runnerJar, "compile", jrxmlPath, jasperPath],
+    outputDir,
+  );
 
   if (wantsPdf) {
-    const dbUrl = process.env.DB_URL || 'jdbc:postgresql://172.30.64.1:5432/jasper-report-ai?sslmode=disable';
-    const dbUser = process.env.DB_USER || 'postgres';
-    const dbPassword = process.env.DB_PASSWORD || 'postgres';
-    
-     const absoluteJasperPath = path.resolve(jasperPath);
-     const absolutePdfPath = path.resolve(pdfPath);
-     runCommand('java', ['-jar', runnerJar, 'pdf-with-data', absoluteJasperPath, absolutePdfPath, dbUrl, dbUser, dbPassword], outputDir);
-     
-     // [FASE 4] Validation: Check PDF size immediately after generation
-     if (fs.existsSync(pdfPath)) {
-       const pdfSize = fs.statSync(pdfPath).size;
-       if (pdfSize < 1024) {
-         console.warn(`WARN compile.js: PDF size is very small (${pdfSize} bytes). Possible empty dataset or type mismatch.`);
-         console.warn('WARN Tips: Check filter ranges, validate <field class> matches rules/views.json types.');
-       }
-     }
+    logDbCredentials();
+    const dbUrl =
+      process.env.DB_URL ||
+      "jdbc:postgresql://172.30.64.1:5432/jasper-report-ai?sslmode=disable";
+    const dbUser = process.env.DB_USER || "postgres";
+    const dbPassword = process.env.DB_PASSWORD || "postgres";
+
+    const absoluteJasperPath = path.resolve(jasperPath);
+    const absolutePdfPath = path.resolve(pdfPath);
+    runCommand(
+      "java",
+      [
+        "-jar",
+        runnerJar,
+        "pdf-with-data",
+        absoluteJasperPath,
+        absolutePdfPath,
+        dbUrl,
+        dbUser,
+        dbPassword,
+      ],
+      outputDir,
+    );
+
+    // [FASE 4] Validation: Check PDF size immediately after generation
+    if (fs.existsSync(pdfPath)) {
+      const pdfSize = fs.statSync(pdfPath).size;
+      if (pdfSize < 1024) {
+        console.warn(
+          `WARN compile.js: PDF size is very small (${pdfSize} bytes). Possible empty dataset or type mismatch.`,
+        );
+        console.warn(
+          "WARN Tips: Check filter ranges, validate <field class> matches rules/views.json types.",
+        );
+      }
+    }
   }
 
   const logLines = [];
   logLines.push(`[${new Date().toISOString()}] INFO compile started`);
   logLines.push(`[${new Date().toISOString()}] INFO validation ok`);
-  validation.warnings.forEach((w) => logLines.push(`[${new Date().toISOString()}] WARN ${w}`));
-  logLines.push(`[${new Date().toISOString()}] INFO jasper generated: ${path.basename(jasperPath)}`);
+  validation.warnings.forEach((w) =>
+    logLines.push(`[${new Date().toISOString()}] WARN ${w}`),
+  );
+  logLines.push(
+    `[${new Date().toISOString()}] INFO jasper generated: ${path.basename(jasperPath)}`,
+  );
   if (wantsPdf) {
-    logLines.push(`[${new Date().toISOString()}] INFO pdf generated: ${path.basename(pdfPath)}`);
+    logLines.push(
+      `[${new Date().toISOString()}] INFO pdf generated: ${path.basename(pdfPath)}`,
+    );
   }
 
   // Load blueprint if provided
   let blueprintData = null;
-  let contaminationCheckStatus = 'skipped';
+  let contaminationCheckStatus = "skipped";
   if (blueprintPath && fs.existsSync(blueprintPath)) {
     try {
-      blueprintData = JSON.parse(fs.readFileSync(blueprintPath, 'utf8'));
+      blueprintData = JSON.parse(fs.readFileSync(blueprintPath, "utf8"));
     } catch (err) {
       console.warn(`WARN Failed to parse blueprint JSON: ${err.message}`);
     }
@@ -432,28 +1012,44 @@ async function main() {
   if (blueprintData?.source?.jrxmlModelPath) {
     const modelPath = path.resolve(blueprintData.source.jrxmlModelPath);
     if (!fs.existsSync(modelPath)) {
-      throw new Error(`Model JRXML not found for contamination check: ${modelPath}`);
+      throw new Error(
+        `Model JRXML not found for contamination check: ${modelPath}`,
+      );
     }
     const contaminations = await checkModelContamination(jrxmlPath, modelPath);
     if (contaminations.length > 0) {
-      const details = contaminations.map((c) => `[${c.severity}] ${c.type}: ${c.message}`).join(' | ');
-      throw new Error(`Semantic contamination detected before compile: ${details}`);
+      const details = contaminations
+        .map((c) => `[${c.severity}] ${c.type}: ${c.message}`)
+        .join(" | ");
+      throw new Error(
+        `Semantic contamination detected before compile: ${details}`,
+      );
     }
-    contaminationCheckStatus = 'passed';
-    logLines.push(`[${new Date().toISOString()}] INFO contamination check passed (model: ${path.basename(modelPath)})`);
+    contaminationCheckStatus = "passed";
+    logLines.push(
+      `[${new Date().toISOString()}] INFO contamination check passed (model: ${path.basename(modelPath)})`,
+    );
   }
 
   const diagnostic = assessEmptyDataRisk(wantsPdf ? pdfPath : null);
-  logLines.push(`[${new Date().toISOString()}] INFO summary: rowCount=unknown (simple mode runtime does not expose row count)`);
+  logLines.push(
+    `[${new Date().toISOString()}] INFO summary: rowCount=unknown (simple mode runtime does not expose row count)`,
+  );
   if (diagnostic.hasPdf) {
-    logLines.push(`[${new Date().toISOString()}] INFO summary: pdfSizeBytes=${diagnostic.pdfSizeBytes}`);
+    logLines.push(
+      `[${new Date().toISOString()}] INFO summary: pdfSizeBytes=${diagnostic.pdfSizeBytes}`,
+    );
     if (diagnostic.possibleEmptyData) {
-      logLines.push(`[${new Date().toISOString()}] WARN summary: ${diagnostic.message}`);
-      logLines.push(`[${new Date().toISOString()}] WARN summary: revise filtros e mapeamento de fields/classes`);
+      logLines.push(
+        `[${new Date().toISOString()}] WARN summary: ${diagnostic.message}`,
+      );
+      logLines.push(
+        `[${new Date().toISOString()}] WARN summary: revise filtros e mapeamento de fields/classes`,
+      );
     }
   }
 
-  fs.writeFileSync(logPath, `${logLines.join('\n')}\n`, 'utf8');
+  fs.writeFileSync(logPath, `${logLines.join("\n")}\n`, "utf8");
 
   // Build metadata with styleSource tracking
   const metadata = {
@@ -462,105 +1058,113 @@ async function main() {
     compiledAt: new Date().toISOString(),
     source: path.basename(jrxmlPath),
     reportTopology: {
-      type: 'SIMPLE',
+      type: "SIMPLE",
       masterFile: path.basename(jrxmlPath),
       detailFiles: [],
       relationKeys: [],
-      parameterBindings: {}
+      parameterBindings: {},
     },
     outputs: {
       jrxml: path.basename(jrxmlPath),
       jasper: path.basename(jasperPath),
       pdf: wantsPdf ? path.basename(pdfPath) : null,
-      log: path.basename(logPath)
+      log: path.basename(logPath),
     },
     checksums: {
       jrxml: sha256(jrxmlContent),
       jasper: sha256(fs.readFileSync(jasperPath)),
-      pdf: wantsPdf ? sha256(fs.readFileSync(pdfPath)) : null
+      pdf: wantsPdf ? sha256(fs.readFileSync(pdfPath)) : null,
     },
     jrxml: {
       file: path.basename(jrxmlPath),
-      hash: sha256(jrxmlContent)
+      hash: sha256(jrxmlContent),
     },
     jasper: {
       file: path.basename(jasperPath),
       hash: sha256(fs.readFileSync(jasperPath)),
       size: fs.statSync(jasperPath).size,
-      version: 'JasperReports 6.2.0'
+      version: "JasperReports 6.2.0",
     },
-    pdf: wantsPdf ? {
-      file: path.basename(pdfPath),
-      size: fs.statSync(pdfPath).size,
-      hasData: true
-    } : null,
-    styleSource: blueprintData ? {
-      type: blueprintData.source?.inputMode || 'unknown',
-      path: blueprintData.source?.jrxmlModelPath || null,
-      sha256: blueprintData.source?.jrxmlModelSha256 || null,
-      confidence: blueprintData.confidence?.global || 0,
-      fallbackApplied: false,
-      appliedAt: new Date().toISOString()
-    } : {
-      type: 'nativa',
-      path: null,
-      sha256: null,
-      confidence: null,
-      fallbackApplied: false,
-      appliedAt: new Date().toISOString()
-    },
+    pdf: wantsPdf
+      ? {
+          file: path.basename(pdfPath),
+          size: fs.statSync(pdfPath).size,
+          hasData: true,
+        }
+      : null,
+    styleSource: blueprintData
+      ? {
+          type: blueprintData.source?.inputMode || "unknown",
+          path: blueprintData.source?.jrxmlModelPath || null,
+          sha256: blueprintData.source?.jrxmlModelSha256 || null,
+          confidence: blueprintData.confidence?.global || 0,
+          fallbackApplied: false,
+          appliedAt: new Date().toISOString(),
+        }
+      : {
+          type: "nativa",
+          path: null,
+          sha256: null,
+          confidence: null,
+          fallbackApplied: false,
+          appliedAt: new Date().toISOString(),
+        },
     dataSource: {
       view: null,
       fields: [],
-      filters: []
+      filters: [],
     },
     validation: {
       xmlValid: validation.ok,
       sqlValid: validation.ok,
       contaminationCheck: contaminationCheckStatus,
-      typeConsistency: validation.ok ? 'passed' : 'failed'
+      typeConsistency: validation.ok ? "passed" : "failed",
     },
     diagnostics: {
-      mode: 'SIMPLE',
+      mode: "SIMPLE",
       outputDir: outputDir,
       emptyDataRisk: diagnostic,
       troubleshootingHints: [
-        'Se PDF vier pequeno, valide filtros e retorno da view.',
-        'Se houver erro de tipo, alinhe <field class> com rules/views.json.',
-        'Use o .log para rastrear em qual etapa (validate/compile/pdf) ocorreu falha.'
-      ]
+        "Se PDF vier pequeno, valide filtros e retorno da view.",
+        "Se houver erro de tipo, alinhe <field class> com rules/views.json.",
+        "Use o .log para rastrear em qual etapa (validate/compile/pdf) ocorreu falha.",
+      ],
     },
-    note: 'Artifacts generated with JasperReports Java runner.'
+    note: "Artifacts generated with JasperReports Java runner.",
   };
 
-  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), 'utf8');
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2), "utf8");
 
   // [FASE 4] Validation: Check for ERROR in log and validate artifacts
-  const logContent = fs.readFileSync(logPath, 'utf8');
-  if (logContent.includes('ERROR') && !logContent.includes('[M/D]')) {
-    console.error('ERROR compile.js: Log file contains ERROR messages. Check log file for details.');
+  const logContent = fs.readFileSync(logPath, "utf8");
+  if (logContent.includes("ERROR") && !logContent.includes("[M/D]")) {
+    console.error(
+      "ERROR compile.js: Log file contains ERROR messages. Check log file for details.",
+    );
     process.exit(1);
   }
 
   // [FASE 4] Validation: Artifact inventory for SIMPLE mode
   const requiredArtifacts = [jrxmlPath, jasperPath, logPath, metadataPath];
   if (wantsPdf) requiredArtifacts.push(pdfPath);
-  
+
   const missingArtifacts = requiredArtifacts.filter((a) => !fs.existsSync(a));
   if (missingArtifacts.length > 0) {
-    console.error(`ERROR missing artifacts: ${missingArtifacts.map((a) => path.basename(a)).join(', ')}`);
+    console.error(
+      `ERROR missing artifacts: ${missingArtifacts.map((a) => path.basename(a)).join(", ")}`,
+    );
     process.exit(1);
   }
 
   // [FASE 4] Validation: Metadata JSON structure check
   try {
-    const metadataContent = fs.readFileSync(metadataPath, 'utf8');
+    const metadataContent = fs.readFileSync(metadataPath, "utf8");
     const metadataObj = JSON.parse(metadataContent);
     if (!metadataObj.reportTopology || !metadataObj.reportTopology.type) {
-      throw new Error('metadata: missing reportTopology.type');
+      throw new Error("metadata: missing reportTopology.type");
     }
     if (!metadataObj.validation || !metadataObj.diagnostics) {
-      throw new Error('metadata: missing validation or diagnostics section');
+      throw new Error("metadata: missing validation or diagnostics section");
     }
   } catch (err) {
     console.error(`ERROR metadata validation failed: ${err.message}`);
@@ -571,10 +1175,12 @@ async function main() {
   if (wantsPdf) console.log(`OK Generated ${pdfPath}`);
   console.log(`OK Generated ${logPath}`);
   console.log(`OK Generated ${metadataPath}`);
-  
+
   // Output style tracking info if blueprint was used
   if (blueprintData) {
-    console.log(`OK Style tracking: ${blueprintData.source?.inputMode || 'unknown'}`);
+    console.log(
+      `OK Style tracking: ${blueprintData.source?.inputMode || "unknown"}`,
+    );
     if (blueprintData.source?.jrxmlModelPath) {
       console.log(`OK Style source: ${blueprintData.source.jrxmlModelPath}`);
     }

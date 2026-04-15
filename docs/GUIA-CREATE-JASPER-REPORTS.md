@@ -5,14 +5,37 @@ Objetivo: gerar relatorios JasperReports com seguranca, sem depender de conhecim
 
 ---
 
+## 0. Etapa 0 (obrigatoria): Verificar ambiente antes do primeiro relatorio
+
+Antes de gerar qualquer relatorio, execute o script de verificacao de pre-requisitos:
+
+**Windows (PowerShell):**
+
+```powershell
+.\setup\check-env.ps1
+```
+
+**Linux / Mac:**
+
+```bash
+bash setup/check-env.sh
+```
+
+O script verifica: Java >= 11, Maven, Node.js >= 16 e variaveis de banco de dados (DB_URL, DB_USER, DB_PASSWORD).
+Corrija todos os erros reportados antes de continuar.
+
+---
+
 ## 1. Qual modo escolher
 
 Use SIMPLE quando houver 1 query e sem subreport.
 Use MASTER_DETAIL quando houver relacao pai-filho (1:N), com master e detail separados.
 
 Regra pratica:
+
 - Se o PDF tem uma tabela unica -> SIMPLE.
 - Se o PDF tem bloco principal e lista filha por registro -> MASTER_DETAIL.
+- Se o PDF tem bloco principal, lista filha e sub-lista aninhada -> MASTER_DETAIL_2L.
 
 ---
 
@@ -35,9 +58,10 @@ Se qualquer etapa falhar, corrigir e repetir antes de seguir.
 Copie o exemplo do modo correto (SIMPLE ou MASTER_DETAIL), troque os valores e envie no chat.
 
 Boas praticas:
+
 - Sempre informar view e campos explicitos.
 - Sempre informar filtros com tipo (DATE, INT, STRING, DECIMAL).
-- Nunca pedir SELECT *.
+- Nunca pedir SELECT \*.
 - Para MASTER_DETAIL, sempre informar chave de relacao e cardinalidade 1:N.
 
 ---
@@ -128,7 +152,12 @@ Descricao: (em branco)
 
 ---
 
-## 5. Prompt MASTER_DETAIL - opcoes, obrigatoriedade e descricao minima
+## 5. Prompt MASTER_DETAIL / MASTER_DETAIL_2L - opcoes, obrigatoriedade e descricao minima
+
+O pipeline suporta até 2 níveis de detail:
+
+- **MASTER_DETAIL**: master → detail (1 nível)
+- **MASTER_DETAIL_2L**: master → detail1 → detail2 (2 níveis)
 
 Fonte de verdade do template: `prompts/relatorio-master-detail.prompt.md`.
 
@@ -279,6 +308,7 @@ node scripts/compile.js output/<nome>/master.jrxml --detail output/<nome>/detail
 ## 8. O que deve existir no final (artefatos)
 
 SIMPLE:
+
 - relatorio.jrxml
 - relatorio.jasper
 - relatorio.pdf
@@ -286,6 +316,7 @@ SIMPLE:
 - metadata.json
 
 MASTER_DETAIL:
+
 - master.jrxml
 - detail.jrxml
 - master.jasper
@@ -424,5 +455,31 @@ node scripts/compile.js output/<nome>/master.jrxml --detail output/<nome>/detail
 ```
 
 Se algum comando falhar, nao prossiga. Corrija e execute novamente.
+
+---
+
+## 11. Especificacao de layout por banda
+
+Referencia de alturas recomendadas, objetos obrigatorios e variaveis corretas por banda.
+
+| Banda          | Altura recomendada | Objetos obrigatorios                                                                              | Observacao                                                         |
+| -------------- | ------------------ | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `pageHeader`   | 60px               | `staticText` (titulo), `textField` (data/hora), `<line>` no fundo                                 | Usar `printWhenDetailOverflows="true"` para repetir em cada pagina |
+| `columnHeader` | 25px               | Labels em negrito, `<line>` no fundo                                                              | —                                                                  |
+| `groupHeader`  | 20px               | `textField` com expressao `"Label: " + $F{campo}`, largura = pageWidth - leftMargin - rightMargin | Altura minima do objeto textField: 16px                            |
+| `groupFooter`  | 25px               | `<line>` no topo, `textField` com `$V{<NomeGrupo>_COUNT}`                                         | —                                                                  |
+| `pageFooter`   | 30px               | `<line>` no topo, total de registros, paginacao                                                   | Ver aviso abaixo                                                   |
+
+### Variaveis de paginacao (erro comum)
+
+```text
+$V{PAGE_NUMBER}  ->  pagina atual  (ex.: 1, 2, 3...)
+$V{PAGE_COUNT}   ->  total de paginas do relatorio
+
+Formato correto no rodape:
+  "Pagina " + $V{PAGE_NUMBER} + " de " + $V{PAGE_COUNT}
+
+Erro comum: usar PAGE_NUMBER nos dois lugares -> rodape exibe "Pagina 2 de 2" em vez de "Pagina 2 de 5"
+```
 
 FIM.

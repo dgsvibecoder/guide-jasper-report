@@ -2,15 +2,17 @@
 
 ## ℹ️ Instruções de Uso
 
-Preencha este template para gerar relatório em **FORMATO MASTER/DETAIL** 
+Preencha este template para gerar relatório em **FORMATO MASTER/DETAIL**
 (tabela pai com detalhes aninhados).
 
 **Quando usar:**
+
 - Você quer uma tabela principal (master) com linhas expandíveis (detail)
 - Exemplo: Vendedor (master) → Lista de vendas do vendedor (detail)
 - Exemplo: Paciente (master) → Histórico de atendimentos (detail)
 
 **Quando NÃO usar:**
+
 - Se você quer apenas um relatório simples com uma tabela
 - Use `relatorio-simples.prompt.md` nesse caso
 
@@ -32,7 +34,29 @@ Preencha este template para gerar relatório em **FORMATO MASTER/DETAIL**
 
 ---
 
-## 📝 PASSO 1: Informações Básicas
+## � PASSO 0: Declaração de Campos nas Views
+
+**Obrigatório se as views ainda não existem em `rules/views.json`.**
+
+Se as views que você vai usar ainda não têm campos registrados em `rules/views.json`,
+liste aqui cada campo com nome, descrição e tipo antes de preencher o restante.
+A IA atualizará o `rules/views.json` como **PRIMEIRA ação**, antes de gerar os JRXMLs.
+
+```
+View Master: [nome_da_view_master]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+
+View Detail: [nome_da_view_detail]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+  Campo: [nome] | Descrição: [desc] | Tipo: [varchar(N) / int / float8 / timestamp / boolean]
+```
+
+Se as views já existem com todos os campos necessários em `rules/views.json` → deixe em branco.
+
+---
+
+## �📝 PASSO 1: Informações Básicas
 
 ```
 Nome do Relatório: [Exemplo: VENDEDOR_VENDAS_DETAIL]
@@ -46,12 +70,13 @@ Descrição: [Exemplo: Relatório de vendedores com detalhe de vendas por item]
 Descreva o contexto, motivação e públicos para AMBOS master e detail.
 
 **Exemplos de Cenário:**
+
 - "Gerente comercial acompanha vendedor e suas vendas diárias. Master = vendedor (nome, ID). Detail = vendas do vendedor (data, item, valor). Permite analisar desempenho por vendedor."
 - "Diretor clínica monitora pacientes e seus atendimentos. Master = paciente (nome, data registro). Detail = histórico de atendimentos (data, motivo, profissional). Permite rastrear todo histórico de um paciente."
 
 ```
 Cenário Master/Detail:
-[Exemplo: 
+[Exemplo:
 MASTER (Principal): Vendedor - agregação por elemento da equipe comercial
 DETAIL (Aninhado): Vendas do Vendedor - lista de transações de cada vendedor
 USO: Gerente valida performance por vendedor + detalhe de cada venda
@@ -66,6 +91,7 @@ PÚBLICO: Gerência + Equipe Comercial
 Escolha a view que será a tabela PAI (master).
 
 **Views disponíveis em rules/views.json:**
+
 - `view_vendas_diarias` - Campos: data, item_nome, item_codigo, quantidade, valor_unitario, valor_total, vendedor_nome, vendedor_id, categoria
 - `view_pacientes_atendidos` - Campos: paciente_id, paciente_nome, data_registro, tipo_atendimento
 - `accessops` - Campos: usuario, data_acesso, tipo_operacao, resultado
@@ -82,11 +108,13 @@ View Master (Principal): [Exemplo: view_vendas_diarias]
 Defina qual campo na view master será o agrupamento (esse será a chave que une master → detail).
 
 **Exemplos:**
+
 - `vendedor_id` + `vendedor_nome` → Agrupa por vendedor (1 linha master por vendedor)
 - `paciente_id` + `paciente_nome` → Agrupa por paciente (1 linha master por paciente)
 - `categoria` → Agrupa por categoria de produto
 
 **Regra CRÍTICA:**
+
 - Campo DEVE existir em rules/views.json
 - Campo DEVE ser a chave de união para o detail (ver PASSO 7)
 - Use campos que IDENTIFICAM UNICAMENTE o master
@@ -129,11 +157,13 @@ View Detail (Filha): [Exemplo: view_vendas_diarias]
 Defina a granularidade do detail (cada linha dentro do detalhe).
 
 **Exemplos:**
+
 - `data` → Cada linha detail é uma venda por data
 - `data, item_nome` → Cada linha é data + item específico
 - `id_venda` → Cada linha é uma venda única
 
 **Regra CRÍTICA:**
+
 - Campo DEVE existir na view detail
 - Campo DEVE estar em vista_detail E no contrato de relacionamento
 
@@ -165,10 +195,12 @@ Campos Detail (separe por vírgula):
 Defina como master e detail se conectam (CHAVE DE JOINTURA).
 
 **Regra:**
+
 - Campo master DEVE coincidir em nome/tipo com campo detail
 - Ambos devem existir no contrato (rules/views.json)
 
 **Exemplos:**
+
 - Master: `vendedor_id` = Detail: `vendedor_id` → Filtra vendas do vendedor
 - Master: `paciente_id` = Detail: `paciente_id` → Filtra atendimentos do paciente
 
@@ -190,6 +222,7 @@ Cardinalidade Esperada:
 Defina filtros que serão aplicados apenas à tabela master.
 
 **Tipos de filtro disponíveis:**
+
 - `DATE` - Data (ex: 2026-03-30)
 - `INT` - Número inteiro (ex: 1001)
 - `STRING` - Texto (ex: "João")
@@ -262,9 +295,26 @@ Cores: Alternadas (master), sem cor (detail)
 
 ---
 
+## 🎨 PASSO 12.1: Especificação de Bandas (Opcional — reduz retrabalho)
+
+Preencha para cada banda que deve ser gerada. Quanto mais detalhado, menos
+ajustes serão necessários após a geração. Deixe em branco as bandas não utilizadas.
+
+```
+Especificação de Bandas:
+  pageHeader    : [Título + data/hora + <line> na parte inferior | Impresso em cada página: Sim/Não]
+  columnHeader  : [Cabeçalho em negrito + <line> na parte inferior]
+  groupHeader   : [Texto "Label: $F{campo}" | Altura do objeto textField: 16px]
+  groupFooter   : [<line> no topo + contador de registros do grupo]
+  pageFooter    : [<line> no topo + "Total de Registros: $V{REPORT_COUNT}" + "Página $V{PAGE_NUMBER} de $V{PAGE_COUNT}"]
+```
+
+---
+
 ## ✅ PASSO 13: Validação Antes de Submeter
 
 Checklist:
+
 - [ ] Cenário está claro (master E detail)?
 - [ ] View master existe em rules/views.json?
 - [ ] View detail existe em rules/views.json?
@@ -284,6 +334,13 @@ Checklist:
 **Cole este prompt na Copilot Chat (Ctrl+I) após preencher acima:**
 
 ```
+📌 PASSO 0 — Campos a adicionar nas views (se necessário):
+View Master: [nome]
+  Campo: [campo] | Descrição: [desc] | Tipo: [tipo]
+View Detail: [nome]
+  Campo: [campo] | Descrição: [desc] | Tipo: [tipo]
+(em branco se views já estão completas em rules/views.json)
+
 Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MODO MASTER/DETAIL).
 
 📋 DETALHES DO RELATÓRIO:
@@ -430,6 +487,7 @@ Após colar o prompt no Copilot:
 ## 📚 Exemplos Completos
 
 Veja em `docs/EXEMPLOS-FASE-1.md`:
+
 - Exemplo 1: Relatório Simples (Vendas Diárias)
 - Exemplo 2: Master/Detail (Vendedor → Vendas)
 - Exemplo 3: Master/Detail (Paciente → Atendimentos)
