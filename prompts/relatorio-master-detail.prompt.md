@@ -28,9 +28,13 @@ Preencha este template para gerar relatório em **FORMATO MASTER/DETAIL**
 - [ ] Cardinalidade do relacionamento é **1:N**? (nunca N:N ou 1:1 em MASTER_DETAIL)
 - [ ] Chave master (ex: vendedor_id) existe em AMBAS as views (master e detail)?
 - [ ] Tipos das chaves coincidem? (INT=INT, VARCHAR=VARCHAR, não misturar tipos diferentes)
+- [ ] Campos informados nos filtros master existem na view master?
+- [ ] Campos informados nos filtros detail existem na view detail?
 - [ ] Nome relatório único, sem espaços, **UPPERCASE_WITH_UNDERSCORES**
 
 **❌ Se algum check falhar:** Corrija o input antes de enviar ao Copilot. Não prossiga.
+
+> ⚠️ **Regra de segurança:** informe apenas campos que realmente existem na view correspondente. A IA **nunca** substituirá um campo por outro de mesmo tipo ou nome similar — se o campo não existir na view, a geração será bloqueada e você receberá uma mensagem de erro com o nome exato do campo inválido.
 
 ---
 
@@ -142,7 +146,22 @@ Campos Master (separe por vírgula):
 
 ---
 
-## 🔗 PASSO 6: Fonte de Dados - DETAIL (View Filha)
+## � PASSO 5.1: Ordenação MASTER (ORDER BY)
+
+Defina a ordem dos registros na tabela master. Opcional.
+
+**Regra:** inclua a chave de agrupamento master (PASSO 4) como primeira chave do ORDER BY.
+
+```
+Ordenado Por MASTER (campo(s)):
+[Exemplo: vendedor_nome ASC]
+
+(deixe em branco se a ordem for irrelevante)
+```
+
+---
+
+## �🔗 PASSO 6: Fonte de Dados - DETAIL (View Filha)
 
 Escolha a view que será **aninhada** dentro de cada linha master (detail).
 
@@ -190,7 +209,20 @@ Campos Detail (separe por vírgula):
 
 ---
 
-## 🔗 PASSO 9: Relacionamento Master → Detail
+## � PASSO 8.1: Ordenação DETAIL (ORDER BY)
+
+Defina a ordem dos registros dentro de cada bloco detail. Opcional.
+
+```
+Ordenado Por DETAIL (campo(s)):
+[Exemplo: data DESC, item_nome ASC]
+
+(deixe em branco se a ordem for irrelevante)
+```
+
+---
+
+## �🔗 PASSO 9: Relacionamento Master → Detail
 
 Defina como master e detail se conectam (CHAVE DE JOINTURA).
 
@@ -221,6 +253,8 @@ Cardinalidade Esperada:
 
 Defina filtros que serão aplicados apenas à tabela master.
 
+> ⚠️ **Atenção:** o campo informado em cada filtro deve existir na view master. Se não existir em `rules/views.json` mas existir na view real, a IA o adicionará automaticamente. Se não existir em lugar nenhum, a geração será **bloqueada** — a IA **nunca** usará outro campo no lugar.
+
 **Tipos de filtro disponíveis:**
 
 - `DATE` - Data (ex: 2026-03-30)
@@ -234,21 +268,27 @@ Filtro Master 1:
   Tipo: DATE
   Obrigatório: Não
   Label: "Data Inicial"
+  Valor de Teste: 2024-01-01
 
 Filtro Master 2:
   Nome: dataFim
   Tipo: DATE
   Obrigatório: Não
   Label: "Data Final"
+  Valor de Teste: 2024-12-31
 
 [Adicione mais se necessário]
 ```
+
+> **Valor de Teste:** valor real que a IA usará via `--param` ao compilar o PDF de preview. Deixe em branco para gerar sem filtro aplicado. Formato: DATE=`2024-01-01`, INT=`1001`, STRING=`texto`, DECIMAL=`99.99`.
 
 ---
 
 ## 🔍 PASSO 11: Filtros DETAIL (Parâmetros da Grade)
 
 Defina filtros opcionais para a tabela detail (aplicados ao subreport).
+
+> ⚠️ **Atenção:** o campo informado em cada filtro deve existir na view detail. Se não existir em `rules/views.json` mas existir na view real, a IA o adicionará automaticamente. Se não existir em lugar nenhum, a geração será **bloqueada** — a IA **nunca** usará outro campo no lugar.
 
 ```
 Filtro Detail 1:
@@ -257,9 +297,12 @@ Filtro Detail 1:
   Obrigatório: Não
   Default: null
   Label: "Valor Mínimo (R$)"
+  Valor de Teste: 50.00
 
 [Adicione mais se necessário]
 ```
+
+> **Valor de Teste:** mesmo conceito dos filtros master — valor que a IA usa ao gerar o PDF de preview via `--param`.
 
 ---
 
@@ -311,6 +354,35 @@ Especificação de Bandas:
 
 ---
 
+## 📦 PASSO 12.5: Segundo Nível de Detail (MASTER_DETAIL_2L) — Opcional
+
+Preencha apenas se precisar de um terceiro nível (master → detail1 → detail2).
+Se não precisar, deixe em branco e o relatório será gerado no modo MASTER_DETAIL.
+
+**Pré-condições obrigatórias para usar 2L:**
+
+- O relacionamento em `rules/views.json` deve ter `detail2View` e `relationship2` definidos.
+- A cardinalidade detail1 → detail2 deve ser 1:N.
+
+```
+View Detail2 (terceiro nível): [Exemplo: view_itens_detalhe]
+
+Campos Detail2 (separe por vírgula):
+[Exemplo: sku, descricao, quantidade_estoque, preco_custo]
+
+Ordenado Por Detail2 (campo(s)):
+[Exemplo: sku ASC]
+
+Chave Detail1 → Detail2:
+  Chave Detail1: [Exemplo: item_codigo]
+  Chave Detail2: [Exemplo: item_codigo]
+  Cardinalidade: 1:N
+
+Relationship Key em rules/views.json: [Exemplo: vendas_itens_detail2]
+```
+
+---
+
 ## ✅ PASSO 13: Validação Antes de Submeter
 
 Checklist:
@@ -357,13 +429,14 @@ Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MO
 
 **View Master:** [VIEW_MASTER]
 **Agrupado Por (chave única):** [CAMPO_AGRUPAMENTO_MASTER]
+**Ordenado Por Master:** [Exemplo: vendedor_nome ASC]
 **Campos Master:**
 [CAMPO1] (label: "[Label1]")
 [CAMPO2] (label: "[Label2]")
 ...
 
 **Filtros Master:**
-- [FILTRO1] (tipo: [TIPO], label: "[Label]")
+- [FILTRO1] (tipo: [TIPO], label: "[Label]", valor de teste: [VALOR_TESTE1])
 
 ---
 
@@ -371,13 +444,14 @@ Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MO
 
 **View Detail:** [VIEW_DETAIL]
 **Agrupado Por (granularidade filha):** [CAMPO_AGRUPAMENTO_DETAIL]
+**Ordenado Por Detail:** [Exemplo: data DESC, item_nome ASC]
 **Campos Detail:**
 [CAMPO1] (label: "[Label1]")
 [CAMPO2] (label: "[Label2]")
 ...
 
 **Filtros Detail:**
-- [FILTRO1] (tipo: [TIPO], label: "[Label]")
+- [FILTRO1] (tipo: [TIPO], label: "[Label]", valor de teste: [VALOR_TESTE1])
 
 ---
 

@@ -1,0 +1,75 @@
+{
+  "reportName": "LISTA_PACIENTES",
+  "generatedAt": "2026-05-04T19:06:54.857Z",
+  "compiledAt": "2026-05-04T19:06:54.857Z",
+  "source": "lista_pacientes.jrxml",
+  "reportTopology": {
+    "type": "SIMPLE",
+    "masterFile": "lista_pacientes.jrxml",
+    "detailFiles": [],
+    "relationKeys": [],
+    "parameterBindings": {}
+  },
+  "outputs": {
+    "jrxml": "lista_pacientes.jrxml",
+    "jasper": "lista_pacientes.jasper",
+    "pdf": "lista_pacientes.pdf",
+    "log": "lista_pacientes.log"
+  },
+  "checksums": {
+    "jrxml": "7a32206385554d3273933923d50a06bf51d2d02933d7b0bda885ec6564beb2bd",
+    "jasper": "65f7b2826809a285264318d3453302bed45b67716aa96d781a2899aa945270a7",
+    "pdf": "62cce8c64c42223a1d5bf457ab5df358667239410b5eaecf30b3ee28f69e5064"
+  },
+  "jrxml": {
+    "file": "lista_pacientes.jrxml",
+    "hash": "7a32206385554d3273933923d50a06bf51d2d02933d7b0bda885ec6564beb2bd"
+  },
+  "jasper": {
+    "file": "lista_pacientes.jasper",
+    "hash": "65f7b2826809a285264318d3453302bed45b67716aa96d781a2899aa945270a7",
+    "size": 32901,
+    "version": "JasperReports 6.2.0"
+  },
+  "pdf": {
+    "file": "lista_pacientes.pdf",
+    "size": 258784,
+    "hasData": true
+  },
+  "styleSource": {
+    "type": "nativa",
+    "path": null,
+    "sha256": null,
+    "confidence": null,
+    "fallbackApplied": false,
+    "appliedAt": "2026-05-04T19:06:54.892Z"
+  },
+  "dataSource": {
+    "view": null,
+    "fields": [],
+    "filters": []
+  },
+  "validation": {
+    "xmlValid": true,
+    "sqlValid": true,
+    "contaminationCheck": "skipped",
+    "typeConsistency": "passed"
+  },
+  "diagnostics": {
+    "mode": "SIMPLE",
+    "outputDir": "/mnt/c/Area-de-Trabalho/General-Workspace/guide-jasper-report/guide-jasper-report/output/LISTA_PACIENTES",
+    "emptyDataRisk": {
+      "hasPdf": true,
+      "pdfSizeBytes": 258784,
+      "possibleEmptyData": false,
+      "severity": "info",
+      "message": "PDF size looks healthy (258784 bytes)."
+    },
+    "troubleshootingHints": [
+      "Se PDF vier pequeno, valide filtros e retorno da view.",
+      "Se houver erro de tipo, alinhe <field class> com rules/views.json.",
+      "Use o .log para rastrear em qual etapa (validate/compile/pdf) ocorreu falha."
+    ]
+  },
+  "note": "Artifacts generated with JasperReports Java runner."
+}

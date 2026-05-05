@@ -322,6 +322,7 @@ async function compileMasterDetail(masterJrxmlPath, detailJrxmlPath, opts) {
         dbUser,
         dbPassword,
         `SUBREPORT_DETAIL_PATH=${absoluteDetailJasperPath}`,
+        ...(opts.userParams || []),
       ],
       outputDir,
     );
@@ -680,6 +681,7 @@ async function compileMasterDetail2L(
         dbPassword,
         `SUBREPORT_DETAIL_PATH=${absoluteDetail1JasperPath}`,
         `SUBREPORT_DETAIL2_PATH=${absoluteDetail2JasperPath}`,
+        ...(opts.userParams || []),
       ],
       outputDir,
     );
@@ -852,6 +854,19 @@ async function main() {
     relFlagIdx !== -1 ? process.argv[relFlagIdx + 1] : null;
   const rulesPath = path.resolve(__dirname, "..", "rules", "views.json");
 
+  // Collect --param KEY=VALUE arguments to forward to pdf-with-data
+  const userParams = [];
+  for (let i = 2; i < process.argv.length; i++) {
+    if (process.argv[i] === "--param" && process.argv[i + 1]) {
+      userParams.push(process.argv[++i]);
+    }
+  }
+  if (userParams.length > 0) {
+    console.log(
+      `[params] ${userParams.length} user param(s) collected: ${userParams.join(", ")}`,
+    );
+  }
+
   // Block --detail3 or deeper
   if (
     process.argv.some((a) => a === "--detail3" || a.startsWith("--detail3"))
@@ -865,9 +880,9 @@ async function main() {
   if (!jrxmlArg) {
     console.error(
       "Usage:\n" +
-        "  node compile.js <report.jrxml> [--pdf] [--style-blueprint <blueprint.json>]\n" +
-        "  node compile.js <master.jrxml> --detail <detail.jrxml> [--pdf] [--relationship <relKey>]\n" +
-        "  node compile.js <master.jrxml> --detail <detail1.jrxml> --detail2 <detail2.jrxml> [--pdf] [--relationship <relKey>]",
+        "  node compile.js <report.jrxml> [--pdf] [--param KEY=VALUE ...] [--style-blueprint <blueprint.json>]\n" +
+        "  node compile.js <master.jrxml> --detail <detail.jrxml> [--pdf] [--param KEY=VALUE ...] [--relationship <relKey>]\n" +
+        "  node compile.js <master.jrxml> --detail <detail1.jrxml> --detail2 <detail2.jrxml> [--pdf] [--param KEY=VALUE ...] [--relationship <relKey>]",
     );
     process.exit(1);
   }
@@ -900,6 +915,7 @@ async function main() {
       wantsPdf,
       rulesPath,
       relationshipKey,
+      userParams,
     });
     return;
   }
@@ -915,6 +931,7 @@ async function main() {
       wantsPdf,
       rulesPath,
       relationshipKey,
+      userParams,
     });
     return;
   }
@@ -964,6 +981,7 @@ async function main() {
         dbUrl,
         dbUser,
         dbPassword,
+        ...userParams,
       ],
       outputDir,
     );

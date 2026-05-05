@@ -20,6 +20,7 @@ Toda geração deve seguir esta ordem, sem pular etapas:
 2. Gerar JRXML compatível com JasperReports 6.2.0
 3. Executar `node scripts/validate.js` (XML + SQL)
    3.5. **[NOVO - Se usou modelo]** Validar Contaminação Semântica:
+
    ```bash
    node scripts/validate.js output/{relatorio}.jrxml --check-model-contamination /tmp/{modelo}.jrxml
    ```
@@ -30,6 +31,7 @@ Toda geração deve seguir esta ordem, sem pular etapas:
      - 🔴 **CRITICAL**: Query ou Expressão idêntica ao modelo (indica herança de dados)
      - 🟠 **HIGH**: Campos ou Parâmetros herdados do modelo (indica risco)
    - **Ação se falhar**: Regenerar JRXML SEM usar modelo, ou corrigir manualmente
+
 4. **[ATUALIZADO]** Executar `node scripts/compile.js ... --pdf` com Rastreabilidade:
 
    ```bash
@@ -81,6 +83,30 @@ Se qualquer etapa falhar, NÃO seguir adiante. Corrigir primeiro e repetir.
 ❌ Não posso alterar {arquivo}. Essa mudança requer autorização explícita.
 Escopo permitido: APENAS output/<nome>/*.jrxml
 ```
+
+### 🔴 REGRA DE OURO: Campos informados pelo usuário são imutáveis
+
+**Quando o usuário informa um campo (filtro, campo desejado, chave de relação), seguir OBRIGATORIAMENTE:**
+
+1. **Campo não existe em `rules/views.json` mas pode existir na view real:**
+   - Verificar se o campo existe de fato na view do banco de dados
+   - Se existir: adicionar ao `rules/views.json` e continuar normalmente
+   - Se NÃO existir: **BLOQUEAR** com mensagem clara e aguardar correção
+
+2. **Campo não existe em `rules/views.json` E não existe na view do banco:**
+   - **BLOQUEAR imediatamente. NÃO prosseguir.**
+   - Informar: `❌ O campo '{campo}' não existe na view '{view}'. Corrija o prompt e reenvie.`
+   - NÃO sugerir campo alternativo. NÃO usar campo de mesmo tipo. Aguardar o usuário corrigir.
+
+3. **NUNCA substituir um campo informado pelo usuário por outro campo:**
+   - ❌ PROIBIDO: trocar `data_inicio` por `data_criacao` porque têm o mesmo tipo DATE
+   - ❌ PROIBIDO: usar `valor_bruto` no lugar de `valor_total` porque ambos são DECIMAL
+   - ❌ PROIBIDO: sugerir qualquer campo que o usuário não tenha informado explicitamente
+   - ✅ CORRETO: bloquear, exibir mensagem de erro e aguardar o usuário corrigir o prompt
+
+**Esta regra se aplica a filtros, campos de exibição, chaves de relação e qualquer outro campo referenciado no prompt.**
+
+---
 
 ### 1️⃣ GERAÇÃO JRXML: Sempre Parametrizado
 

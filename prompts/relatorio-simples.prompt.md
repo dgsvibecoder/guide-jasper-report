@@ -14,11 +14,14 @@ cole a seção **PROMPT PARA COPILOT** na Copilot chat.
 - [ ] Nome único, sem espaços, **UPPERCASE_WITH_UNDERSCORES**
 - [ ] View escolhida existe em `rules/views.json`? (copiar nome exatamente como definido)
 - [ ] Campos solicitados existem em `validFields` da view? (validar cada um)
+- [ ] Campos informados nos filtros existem na view? (campo de filtro deve existir na view, assim como campos de exibição)
 - [ ] Filtros têm tipos válidos? (DATE, INT, STRING, DECIMAL)
 - [ ] Tipo do filtro confere com tipo do campo da view? (STRING ⟷ VARCHAR, INT ⟷ INT, DATE ⟷ DATE)
 - [ ] Se usa modelo JRXML, arquivo existe em `/tmp` e foi validado (confidence >= 0.65)?
 
 **❌ Se algum check falhar:** Corrija o input antes de enviar ao Copilot. Não prossiga.
+
+> ⚠️ **Regra de segurança:** informe apenas campos que realmente existem na view. A IA **nunca** substituirá um campo por outro de mesmo tipo ou nome similar — se o campo não existir na view, a geração será bloqueada e você receberá uma mensagem de erro com o nome exato do campo inválido.
 
 ---
 
@@ -135,9 +138,27 @@ Campos Desejados (separe por vírgula):
 
 ---
 
+## � PASSO 5.1: Ordenação (ORDER BY)
+
+Defina a ordem dos registros no relatório. Opcional, mas recomendado.
+
+**Regra importante:** se o relatório tem agrupamento (PASSO 4), inclua o campo de agrupamento
+como **primeira chave** do ORDER BY para garantir que os grupos fiquem contíguos.
+
+```
+Ordenado Por (campo(s)):
+[Exemplo: data DESC, vendedor_nome ASC]
+
+(deixe em branco se a ordem dos registros for irrelevante)
+```
+
+---
+
 ## 🔍 PASSO 6: Filtros (Parâmetros)
 
 Defina quais filtros o usuário pode aplicar ao gerar o relatório.
+
+> ⚠️ **Atenção:** o campo informado em cada filtro deve existir na view. Se não existir em `rules/views.json` mas existir na view real, a IA o adicionará automaticamente. Se não existir em lugar nenhum, a geração será **bloqueada** — a IA **nunca** usará outro campo no lugar.
 
 **Tipos de filtro disponíveis:**
 
@@ -155,19 +176,23 @@ Defina quais filtros o usuário pode aplicar ao gerar o relatório.
 Filtro 1:
   Nome: dataInicio
   Tipo: DATE
-   Obrigatório: Não
-   Default: null
+  Obrigatório: Não
+  Default: null
   Label: "Data Inicial"
+  Valor de Teste: 2024-01-01
 
 Filtro 2:
   Nome: dataFim
   Tipo: DATE
-   Obrigatório: Não
-   Default: null
+  Obrigatório: Não
+  Default: null
   Label: "Data Final"
+  Valor de Teste: 2024-12-31
 
 [Adicione mais filtros se necessário]
 ```
+
+> **Valor de Teste:** valor real que a IA usará via `--param` ao compilar o PDF de preview. Deixe em branco para gerar sem filtro aplicado. Formato: DATE=`2024-01-01`, INT=`1001`, STRING=`texto`, DECIMAL=`99.99`.
 
 ---
 
@@ -293,6 +318,7 @@ Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MO
 **Cenário (Contexto):** [CENÁRIO_DO_NEGÓCIO]
 **View (fonte de dados):** [VIEW]
 **Agrupado Por (dimensão principal):** [CAMPO_AGRUPAMENTO]
+**Ordenado Por:** [Exemplo: data DESC, vendedor_nome ASC]
 
 **Campos desejados:**
 [CAMPO1] (label: "[Label1]")
@@ -301,8 +327,8 @@ Sou do time de deploy. Preciso gerar um relatório JasperReports customizado (MO
 ...
 
 **Filtros:**
-- [FILTRO1] (tipo: [TIPO], obrigatório: sim, label: "[Label]")
-- [FILTRO2] (tipo: [TIPO], obrigatório: sim, label: "[Label]")
+- [FILTRO1] (tipo: [TIPO], obrigatório: sim, label: "[Label]", valor de teste: [VALOR_TESTE1])
+- [FILTRO2] (tipo: [TIPO], obrigatório: sim, label: "[Label]", valor de teste: [VALOR_TESTE2])
 
 **Layout:**
 [DESCRIÇÃO LAYOUT DO PASSO 7]

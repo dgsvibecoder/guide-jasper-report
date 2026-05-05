@@ -692,6 +692,16 @@
           "example": "mario.rossi@email.it"
         },
         {
+          "name": "datainserimento",
+          "type": "TIMESTAMP",
+          "label": "Data/Hora Inserimento",
+          "isKey": false,
+          "sortable": true,
+          "filterable": true,
+          "aggregatable": false,
+          "example": "2026-03-30 08:30:45"
+        },
+        {
           "name": "dataaggiornamento",
           "type": "TIMESTAMP",
           "label": "Data Atualização",

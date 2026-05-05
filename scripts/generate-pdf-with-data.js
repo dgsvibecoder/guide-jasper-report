@@ -14,9 +14,13 @@ const DB_PASSWORD = process.env.DB_PASSWORD || "postgres";
 
 const jrxmlPath = process.argv[2];
 const outputPdfPath = process.argv[3];
+// Extra KEY=VALUE params forwarded to pdf-with-data (e.g. dataInicio=2024-01-01)
+const extraParams = process.argv.slice(4);
 
 if (!jrxmlPath || !outputPdfPath) {
-  console.error("Usage: node generate-pdf.js <report.jasper> <output.pdf>");
+  console.error(
+    "Usage: node generate-pdf-with-data.js <report.jasper> <output.pdf> [KEY=VALUE ...]",
+  );
   process.exit(1);
 }
 
@@ -37,6 +41,7 @@ const args = [
   DB_URL,
   DB_USER,
   DB_PASSWORD,
+  ...extraParams,
 ];
 
 const result = spawnSync("java", args, {
